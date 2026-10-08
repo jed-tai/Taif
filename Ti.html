@@ -89,6 +89,8 @@ body:has(.dd.open){overflow:hidden}
 .sheet .card{width:100%;max-width:560px;background:var(--card);color:var(--ink);border-radius:24px 24px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -20px 50px -20px rgba(0,0,0,.5)}
 .sheet h2{margin:0 0 4px;font-size:18px;font-weight:700}
 .sheet p{margin:0 0 14px;color:var(--mut);font-size:13.5px}
+.sheet .warn{margin:0 0 12px;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.6;background:color-mix(in srgb,var(--acc) 14%,transparent);border:1px solid color-mix(in srgb,var(--acc) 50%,transparent)}
+.sheet .warn[hidden],.sheet .row button[hidden]{display:none}
 .sheet ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px}
 .sheet li{display:flex;align-items:center;gap:12px;font-size:14.5px}
 .sheet li i{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--pri) 12%,transparent);color:var(--pri);font-style:normal;font-weight:700}
@@ -162,12 +164,13 @@ body:has(.dd.open){overflow:hidden}
 <div class="sheet" id="sheet" hidden><div class="card" role="dialog" aria-label="إضافة إلى الشاشة الرئيسية">
   <h2>إضافة إلى الشاشة الرئيسية</h2>
   <p>اتبع هذه الخطوات في متصفح Safari لتفتح الصفحة كتطبيق مباشرة:</p>
+  <div class="warn" id="notSafari" hidden>أنت تفتح الصفحة من متصفح غير Safari أو من داخل تطبيق، وخيار «إضافة إلى الشاشة الرئيسية» لا يظهر إلا في Safari. انسخ الرابط وافتحه في Safari أولاً.</div>
   <ol>
     <li><i><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></i><span>اضغط زر المشاركة في شريط Safari</span></li>
-    <li><i><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg></i><span>اختر «إضافة إلى الشاشة الرئيسية»</span></li>
+    <li><i><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg></i><span>مرّر القائمة للأسفل واختر «إضافة إلى الشاشة الرئيسية»</span></li>
     <li><i>✓</i><span>اضغط «إضافة»</span></li>
   </ol>
-  <div class="row"><button type="button" class="pri" id="shareBtn" hidden>فتح قائمة المشاركة</button><button type="button" id="sheetClose">فهمت</button></div>
+  <div class="row"><button type="button" class="pri" id="copyBtn" hidden>نسخ الرابط</button><button type="button" class="pri" id="shareBtn" hidden>فتح قائمة المشاركة</button><button type="button" id="sheetClose">فهمت</button></div>
 </div></div>
 <script>
 var S0=Date.UTC(2026,5,16),DAY=864e5;
@@ -282,7 +285,16 @@ function fx(){
   var ua=navigator.userAgent||"",ios=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1),
   inApp=navigator.standalone===true||(window.matchMedia&&matchMedia("(display-mode:standalone)").matches);
   if(ios&&!inApp)$("a2hs").hidden=false;
-  if(navigator.share)$("shareBtn").hidden=false;
+  var safari=/Safari\//.test(ua)&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA|DuckDuckGo|Instagram|FBAN|FBAV|Line|Telegram|Snapchat|MicroMessenger|Twitter/i.test(ua);
+  if(navigator.share&&safari)$("shareBtn").hidden=false;
+  if(ios&&!safari){$("notSafari").hidden=false;$("copyBtn").hidden=false}
+  function pageUrl(){try{return top.location.href}catch(e){return location.href}}
+  $("copyBtn").addEventListener("click",function(){
+    var u=pageUrl(),b=$("copyBtn");
+    function ok(){b.textContent="تم النسخ ✓"}
+    function fb(){var t=document.createElement("textarea");t.value=u;t.style.cssText="position:fixed;opacity:0";document.body.appendChild(t);t.select();try{document.execCommand("copy");ok()}catch(e){b.textContent="انسخه يدوياً"}document.body.removeChild(t)}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,fb);else fb();
+  });
   $("a2hs").addEventListener("click",function(){$("sheet").hidden=false});
   $("sheetClose").addEventListener("click",function(){$("sheet").hidden=true});
   $("sheet").addEventListener("click",function(e){if(e.target===$("sheet"))$("sheet").hidden=true});
