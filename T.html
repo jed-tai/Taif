@@ -207,14 +207,6 @@ body:has(.dd.open){overflow:hidden}
   <button type="button" class="tdy" id="tdy">الرجوع إلى تاريخ اليوم</button>
   <div class="date" id="dt"></div>
   <div id="list"></div>
-  <details id="fl">
-    <summary><span class="fic"><svg viewBox="0 0 24 24"><path d="M2 22h20"/><path d="M6.4 17.4 3 14.2l1.6-.9 3.2 1.3 3.4-2-5.5-4.4 2-1.1 7.6 2.6 3.3-1.9a1.8 1.8 0 0 1 1.8 3.1L7.9 17.6a1.3 1.3 0 0 1-1.5-.2z"/></svg></span><span class="fst"><small>مطار الطائف · 48 ساعة</small><b>رحلات المغادرة</b></span></summary>
-    <div class="flw">
-      <p class="sub">جارٍ تحميل الرحلات…</p>
-      <div class="legend"><span><i class="sw dom"></i>داخلية</span><span><i class="sw intl"></i>دولية</span></div>
-      <div id="days"></div>
-    </div>
-  </details>
   <a class="foot" href="https://wa.me/966509177773" target="_blank" rel="noopener noreferrer" aria-label="مراسلة عثمان القثامي عبر واتساب"><span class="fin"><span class="wa" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></span><span>عثمان القثامي</span></span></a>
 </div>
 <div class="sheet" id="sheet" dir="rtl" lang="ar" hidden><div class="card" role="dialog" aria-label="إضافة إلى الشاشة الرئيسية">
@@ -369,77 +361,6 @@ setInterval(sync,1000);setInterval(photos,30000);setInterval(fx,RM?1000:66);
 document.addEventListener("visibilitychange",function(){if(!document.hidden){LK="";sync()}});
 window.addEventListener("pageshow",function(){LK="";sync()});
 window.addEventListener("focus",function(){LK="";sync()});
-</script>
-<script>
-(function(){
-  // Flights come from flights.json, updated every 30 min by GitHub Actions
-  const AIR={F3:'طيران أديل',XY:'طيران ناس',SV:'السعودية',FZ:'فلاي دبي',G9:'العربية للطيران',NP:'النيل للطيران',MS:'مصر للطيران',PK:'الباكستانية',EY:'الاتحاد',QR:'القطرية',EK:'طيران الإمارات',WY:'الطيران العُماني',GF:'طيران الخليج',KU:'الكويتية',RJ:'الملكية الأردنية',J9:'طيران الجزيرة','6E':'إنديجو',PA:'طيران آيربلو',ER:'سيرين إير',SM:'إير القاهرة'};
-  const CITY={RUH:'الرياض',DMM:'الدمام',DXB:'دبي',SHJ:'الشارقة',CAI:'القاهرة',JED:'جدة',MED:'المدينة المنورة',AHB:'أبها',GIZ:'جازان',TUU:'تبوك',HAS:'حائل',ELQ:'القصيم',AUH:'أبوظبي',DOH:'الدوحة',KWI:'الكويت',BAH:'البحرين',MCT:'مسقط',AMM:'عمّان',HBE:'الإسكندرية',SPX:'سفنكس',KHI:'كراتشي',LHE:'لاهور',ISB:'إسلام آباد',PEW:'بيشاور',MUX:'ملتان',SKT:'سيالكوت',DAC:'دكا',CCJ:'كاليكوت',COK:'كوتشي',HYD:'حيدر آباد',BOM:'مومباي',DEL:'دلهي'};
-  const LBL={ok:'في الموعد',late:'متأخرة',bad:'ملغاة',live:'تقلع الآن'};
-  const MON=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  const WD=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-  const SAUDI=new Set(['RUH','JED','DMM','MED','AHB','TUF','GIZ','ELQ','TIF','ABT','HAS','EJH','YNB','AJF','BHH','TUU','ULH','NUM','AQI','RAE','URY','WAE','DWD','RSI','SHW','KMX','EAM','AKH','HOF','QJB','NSH','RAH','HBT','DHA','BSH']);
-  const isIntl=to=>!SAUDI.has(to);
-  const box=document.getElementById('days');
-  const sub=document.querySelector('#fl .sub');
-  box.style.cssText='display:flex;flex-direction:column;gap:14px';
-
-  // Riyadh = UTC+3 (no DST)
-  const riy=ms=>{const d=new Date(ms+3*36e5);return{y:d.getUTCFullYear(),m:d.getUTCMonth(),d:d.getUTCDate(),w:d.getUTCDay(),h:d.getUTCHours(),mi:d.getUTCMinutes()}};
-  const key=r=>r.y+'-'+String(r.m+1).padStart(2,'0')+'-'+String(r.d).padStart(2,'0');
-  const h12=(h,m)=>((h%12)||12)+':'+String(m).padStart(2,'0')+' '+(h<12?'ص':'م');
-  const stamp=ms=>{const r=riy(ms);return WD[r.w]+' '+r.d+' '+MON[r.m]+'، '+h12(r.h,r.mi)};
-
-  function render(data){
-    const now=Date.now();
-    const list=(data.flights||[]).filter(f=>Date.parse(f[0]+'T'+f[1]+':00+03:00')>=now-5*60e3);
-    const byDay=new Map();
-    list.forEach(f=>{if(!byDay.has(f[0]))byDay.set(f[0],[]);byDay.get(f[0]).push(f)});
-    const today=key(riy(now)), tmr=key(riy(now+864e5));
-    box.textContent='';
-    if(sub) sub.textContent='آخر تحديث: '+stamp(Date.parse(data.updated))+(data.until?' · حتى '+stamp(Date.parse(data.until)):'');
-    if(!list.length){const p=document.createElement('p');p.className='sub';p.textContent='لا توجد رحلات مجدولة حالياً';box.appendChild(p);return}
-    [...byDay.keys()].sort().forEach(k=>{
-      const fl=byDay.get(k).sort((a,b)=>a[1].localeCompare(b[1]));
-      const r=riy(Date.parse(k+'T12:00:00+03:00'));
-      const name=k===today?'اليوم · '+WD[r.w]:k===tmr?'غداً · '+WD[r.w]:WD[r.w];
-      const h=document.createElement('div');h.className='day';
-      h.innerHTML='<div></div><span></span>';
-      h.firstChild.textContent=name;h.lastChild.textContent=r.d+' '+MON[r.m]+' · '+fl.length+' رحلات';
-      const l=document.createElement('div');l.className='list';
-      fl.forEach(([dt,t,fn,to,s])=>{
-        const row=document.createElement('div');row.className='row'+(s==='bad'?' cx':'');
-        row.innerHTML='<div class="time"></div><div class="info"><b></b><div><span class="air"></span> · <span class="fn"></span></div></div><span class="st"></span>';
-        const tm=row.querySelector('.time');tm.textContent=t;
-        const [hh,mm]=t.split(':').map(Number);const t12=document.createElement('small');
-        t12.textContent=h12(hh,mm);tm.appendChild(t12);
-        row.querySelector('b').textContent=CITY[to]||to;
-        if(isIntl(to))row.classList.add('intl');
-        row.querySelector('.air').textContent=AIR[fn.slice(0,2)]||fn.slice(0,2);
-        row.querySelector('.fn').textContent=fn;
-        const st=row.querySelector('.st');st.className='st '+(LBL[s]?s:'ok');st.textContent=LBL[s]||LBL.ok;
-        l.appendChild(row);
-      });
-      const g=document.createElement('section');g.style.cssText='display:flex;flex-direction:column;gap:10px';
-      g.append(h,l);box.appendChild(g);
-    });
-  }
-
-  let last=null;
-  function load(){
-    fetch('flights.json?t='+Date.now(),{cache:'no-store'})
-      .then(r=>{if(!r.ok)throw 0;return r.json()})
-      .then(d=>{last=d;render(d)})
-      .catch(()=>{if(last)render(last);else if(sub)sub.textContent='تعذّر تحميل الرحلات، حاول لاحقاً'});
-  }
-  load();
-  setInterval(load,10*60e3);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
-})();
-</script>
-<script>
-(function(){var el=document.getElementById('fl'),K='tif-fl-open';try{if(localStorage.getItem(K)==='1')el.open=true}catch(_){}
-el.addEventListener('toggle',function(){try{localStorage.setItem(K,el.open?'1':'0')}catch(_){}})})();
 </script>
 
 
