@@ -3,7 +3,8 @@
 and write them to flights.json (used by T.html)."""
 import json, re, sys, time
 from datetime import datetime, timedelta, timezone
-import requests
+from curl_cffi import requests
+
 from bs4 import BeautifulSoup
 
 BASE = "https://www.flightera.net/en/airport/Taif/OETF/departure"
@@ -86,7 +87,7 @@ def main():
         if url in seen_urls:
             break
         seen_urls.add(url)
-        r = requests.get(url, headers=HEADERS, timeout=30)
+        r = requests.get(url, impersonate="chrome", timeout=30)
         r.raise_for_status()
         rows, nxt = parse_page(r.text, now.year)
         found += rows
