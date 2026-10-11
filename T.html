@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>جدول الاستلامات لعام 1448هـ</title>
@@ -192,8 +190,6 @@ body:has(.dd.open){overflow:hidden}
 #fl .sw{display:inline-block;width:12px;height:12px;border-radius:3px}
 #fl .sw.dom{background:var(--dom)} #fl .sw.intl{background:var(--intl)}
 </style>
-</head>
-<body>
 <div class="wrap" dir="rtl" lang="ar">
   <div class="top"><h1>جدول الاستلامات لعام</h1><span class="yr">1448هـ</span></div>
   <div class="hero" id="hr"><div class="sky"><div class="photo p0" id="ph0"></div><div class="photo p1" id="ph1"></div><div class="photo p2" id="ph2"></div><div class="photo p3" id="ph3"></div><canvas id="cv"></canvas></div>
@@ -214,7 +210,7 @@ body:has(.dd.open){overflow:hidden}
   <details id="fl">
     <summary><span class="fic"><svg viewBox="0 0 24 24"><path d="M2 22h20"/><path d="M6.4 17.4 3 14.2l1.6-.9 3.2 1.3 3.4-2-5.5-4.4 2-1.1 7.6 2.6 3.3-1.9a1.8 1.8 0 0 1 1.8 3.1L7.9 17.6a1.3 1.3 0 0 1-1.5-.2z"/></svg></span><span class="fst"><small>مطار الطائف · 48 ساعة</small><b>رحلات المغادرة</b></span></summary>
     <div class="flw">
-      <p class="sub">آخر تحديث: الأحد 11 أكتوبر، 9:14 م · حتى الثلاثاء 13 أكتوبر، 9:14 م</p>
+      <p class="sub">آخر تحديث: الأحد 11 أكتوبر، 10:54 م · حتى الثلاثاء 13 أكتوبر، 10:54 م</p>
       <div class="legend"><span><i class="sw dom"></i>داخلية</span><span><i class="sw intl"></i>دولية</span></div>
       <div id="days"></div>
     </div>
@@ -376,12 +372,13 @@ window.addEventListener("focus",function(){LK="";sync()});
 </script>
 <script>
 (function(){
-  // Snapshot from flightera.net, 11 Oct 2026 21:14 (Asia/Riyadh)
+  // Snapshot from flightera.net, 11 Oct 2026 22:54 (Asia/Riyadh)
+  const SNAP=Date.parse('2026-10-11T22:54:00+03:00');
   const AIR={F3:'طيران أديل',XY:'طيران ناس',SV:'السعودية',FZ:'فلاي دبي',G9:'العربية للطيران',NP:'النيل للطيران'};
   const CITY={RUH:'الرياض',DMM:'الدمام',DXB:'دبي',SHJ:'الشارقة',CAI:'القاهرة'};
   const DAYS=[
     {name:'اليوم · الأحد',date:'11 أكتوبر',f:[
-      ['21:35','SV1904','RUH','bad'],['23:25','XY128','RUH','ok']]},
+      ['23:25','XY128','RUH','ok']]},
     {name:'غداً · الإثنين',date:'12 أكتوبر',f:[
       ['01:40','SV1910','RUH','bad'],['02:30','XY1712','DMM','ok'],['07:35','SV1902','RUH','ok'],['09:25','XY126','RUH','ok'],
       ['12:20','SV1900','RUH','ok'],['15:30','G9188','SHJ','ok'],['16:50','SV1914','RUH','ok'],['17:50','F3452','DMM','ok'],
@@ -421,11 +418,32 @@ window.addEventListener("focus",function(){LK="";sync()});
     g.append(h,l);box.appendChild(g);
   });
 
+  // Auto-refresh: if this snapshot is older than 20 min, ask the scheduled task to run now
+  (async function(){
+    const STALE=20*60e3, GAP=10*60e3, KEY='tif-fl-fire';
+    if(!(Date.now()-SNAP>STALE)) return;
+    let last=0;try{last=+localStorage.getItem(KEY)||0}catch(_){}
+    if(Date.now()-last<GAP) return;
+    if(!window.claude||!claude.use) return;
+    const mcp=await claude.use('mcp'); if(!mcp) return;
+    const sub=document.querySelector('#fl .sub'); const orig=sub?sub.textContent:'';
+    try{localStorage.setItem(KEY,String(Date.now()))}catch(_){}
+    if(sub) sub.textContent=orig+' · جارٍ جلب أحدث الرحلات…';
+    try{
+      await mcp.callTool('Claude Code Remote','fire_trigger',{trigger_id:'trig_01E9DDyJDDVBQUtSoPtP9Ptu'},{cache:false});
+      setTimeout(function(){location.reload()},100e3);
+    }catch(e){
+      if(sub) sub.textContent=orig;
+      try{if(e&&(e.code==='not_in_manifest'||e.code==='approval_required'||e.code==='consent_required'))localStorage.removeItem(KEY)}catch(_){}
+    }
+  })();
+
 })();
 </script>
 <script>
 (function(){var el=document.getElementById('fl'),K='tif-fl-open';try{if(localStorage.getItem(K)==='1')el.open=true}catch(_){}
 el.addEventListener('toggle',function(){try{localStorage.setItem(K,el.open?'1':'0')}catch(_){}})})();
 </script>
-</body>
-</html>
+
+
+</body></html>
