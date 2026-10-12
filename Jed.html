@@ -92,20 +92,24 @@ h1{font-size:20px;font-weight:700;margin:0}
 .sig span{font-size:15px;font-weight:600;color:var(--acc);text-shadow:0 0 10px color-mix(in srgb,var(--acc) 55%,transparent),0 0 24px color-mix(in srgb,var(--acc) 30%,transparent)}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:18px}
 @media (prefers-reduced-motion:reduce){.stars i,.live i{animation:none}.orb{transition:none}}
-.ins{display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;margin:14px auto -6px;padding:5px 14px 5px 7px;border-radius:15px;border:1px solid var(--line);background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-size:13px;font-weight:500}
+.ins{display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;margin:16px auto -4px;padding:5px 14px 5px 7px;border-radius:15px;border:1px solid var(--line);background:var(--card);color:var(--ink);box-shadow:var(--shadow);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
 .ins .ai{flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--pri) 12%,transparent);color:var(--pri)}
-.ins svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.ins[hidden],.ishc [hidden]{display:none!important}
-.ish{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;justify-content:center;background:rgba(5,15,25,.5)}
-.ish.open{display:flex}
-.ishc{width:100%;max-width:560px;background:var(--card);color:var(--ink);border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 30px rgba(0,0,0,.2)}
-.ishh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.ishh b{font-size:17px}
-.ishh button{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:var(--bg);font-size:16px}
-.ishc ol{margin:0;padding-inline-start:22px;display:grid;gap:10px;font-size:14.5px}
-.ishc ol svg{width:18px;height:18px;vertical-align:-3px;fill:none;stroke:var(--pri);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin:0 2px}
-.ishc .nt{margin:12px 0 0;color:var(--mut);font-size:12.5px}
+.ins svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ins[hidden],.sheet[hidden],.sheet [hidden]{display:none!important}
 .hinfo .tm{align-self:flex-start;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:3px 10px;border-radius:99px;opacity:1;font-size:12.5px;font-weight:600;margin-top:2px}
+.sheet svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.sheet{position:fixed;inset:0;z-index:80;background:rgba(4,14,26,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet .card{width:100%;max-width:560px;background:var(--card);color:var(--ink);border-radius:24px 24px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));box-shadow:0 -20px 50px -20px rgba(0,0,0,.5)}
+.sheet h2{margin:0 0 4px;font-size:18px;font-weight:700}
+.sheet p{margin:0 0 14px;color:var(--mut);font-size:13.5px}
+.sheet .warn{margin:0 0 12px;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.6;background:color-mix(in srgb,var(--acc) 14%,transparent);border:1px solid color-mix(in srgb,var(--acc) 50%,transparent)}
+.sheet ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px}
+.sheet li{display:flex;align-items:center;gap:12px;font-size:14.5px}
+.sheet li i{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--pri) 12%,transparent);color:var(--pri);font-style:normal;font-weight:700}
+.sheet li svg{width:18px;height:18px}
+.sheet .row{display:flex;gap:10px}
+.sheet .row button{flex:1;padding:12px;border-radius:14px;font:inherit;font-size:15px;cursor:pointer;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.sheet .row button.pri{background:var(--pri);border-color:var(--pri);color:#fff}
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
 .sig span{display:inline-block;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;background:linear-gradient(225deg,var(--acc) 0%,var(--acc) 38%,color-mix(in srgb,var(--acc) 30%,#fff) 50%,var(--acc) 62%,var(--acc) 100%);background-size:300% 300%;background-position:0% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--acc) 55%,transparent)) drop-shadow(0 0 14px color-mix(in srgb,var(--acc) 30%,transparent));animation:sigShine 4.5s ease-in-out infinite}
 }
@@ -144,11 +148,21 @@ h1{font-size:20px;font-weight:700;margin:0}
   <div class="sig"><span>بخيت الذيابي</span></div>
 </div>
 
-<div class="ish" id="ish" role="dialog" aria-modal="true"><div class="ishc">
-<div class="ishh"><b>إضافة إلى الشاشة الرئيسية</b><button type="button" id="ishx" aria-label="إغلاق">✕</button></div>
-<ol id="ishi"><li>اضغط زر المشاركة <svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5v10h14V11h-1"/></svg> أسفل الشاشة في سفاري.</li><li>اختر «إضافة إلى الشاشة الرئيسية» <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></li><li>اضغط «إضافة» في الأعلى.</li></ol>
-<ol id="isha" hidden><li>اضغط قائمة المتصفح <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg> في الأعلى.</li><li>اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».</li><li>اضغط «إضافة» أو «تثبيت».</li></ol>
-<p class="nt" id="ishn" hidden>على آيفون لازم تفتح الصفحة من سفاري عشان يظهر الخيار.</p>
+<div class="sheet" id="sheet" hidden><div class="card" role="dialog" aria-label="إضافة إلى الشاشة الرئيسية">
+  <h2>إضافة إلى الشاشة الرئيسية</h2>
+  <p id="sheetP">اتبع هذه الخطوات في متصفح Safari لتفتح الصفحة كتطبيق مباشرة:</p>
+  <div class="warn" id="notSafari" hidden>أنت تفتح الصفحة من متصفح غير Safari أو من داخل تطبيق، وخيار «إضافة إلى الشاشة الرئيسية» لا يظهر إلا في Safari. انسخ الرابط وافتحه في Safari أولاً.</div>
+  <ol id="stepsI">
+    <li><i><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg></i><span>اضغط زر المشاركة في شريط Safari</span></li>
+    <li><i><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg></i><span>مرّر القائمة للأسفل واختر «إضافة إلى الشاشة الرئيسية»</span></li>
+    <li><i>✓</i><span>اضغط «إضافة»</span></li>
+  </ol>
+<ol id="stepsA" hidden>
+    <li><i><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></i><span>اضغط قائمة المتصفح في الأعلى</span></li>
+    <li><i><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg></i><span>اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق»</span></li>
+    <li><i>✓</i><span>اضغط «إضافة» أو «تثبيت»</span></li>
+  </ol>
+  <div class="row"><button type="button" class="pri" id="copyBtn" hidden>نسخ الرابط</button><button type="button" class="pri" id="shareBtn" hidden>فتح قائمة المشاركة</button><button type="button" id="sheetClose">فهمت</button></div>
 </div></div>
 <div class="ov" id="ov" role="dialog" aria-modal="true"><div class="ovin"><div class="ovh"><b id="ovt"></b><button type="button" id="ovx" aria-label="إغلاق">✕</button></div><div class="grid" id="gr"></div></div></div>
 
@@ -347,23 +361,30 @@ window.addEventListener("load",function(){window.__loadPhotos(["data:image/jpeg;
       icons:[{src:I192,sizes:"192x192",type:"image/png",purpose:"any maskable"},{src:I512,sizes:"512x512",type:"image/png",purpose:"any maskable"}]};
     document.getElementById("mf").href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/manifest+json"}));
   }catch(e){}
-  var b=document.getElementById("ins"),sh=document.getElementById("ish"),dp=null;
-  var standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
-  if(standalone)return;
+  var b=document.getElementById("ins"),dp=null;
+  function $(i){return document.getElementById(i)}
+  var ua=navigator.userAgent||"",ios=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1),
+  inApp=navigator.standalone===true||(window.matchMedia&&matchMedia("(display-mode:standalone)").matches),
+  safari=/Safari\//.test(ua)&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA|DuckDuckGo|Instagram|FBAN|FBAV|Line|Telegram|Snapchat|MicroMessenger|Twitter/i.test(ua);
+  if(inApp)return;
   b.hidden=false;
-  var ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-  var safari=ios&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
+  if(ios){if(navigator.share&&safari)$("shareBtn").hidden=false;if(!safari){$("notSafari").hidden=false;$("copyBtn").hidden=false}}
+  else{$("stepsI").hidden=true;$("stepsA").hidden=false;$("sheetP").textContent="اتبع هذه الخطوات في متصفح الجوال لتفتح الصفحة كتطبيق مباشرة:"}
+  function pageUrl(){try{return top.location.href}catch(e){return location.href}}
   window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();dp=e});
   window.addEventListener("appinstalled",function(){b.hidden=true;dp=null});
-  function cl(){sh.classList.remove("open")}
   b.addEventListener("click",function(){
     if(dp){dp.prompt();dp.userChoice.then(function(r){if(r.outcome==="accepted")b.hidden=true;dp=null});return}
-    document.getElementById("ishi").hidden=!ios;document.getElementById("isha").hidden=ios;
-    document.getElementById("ishn").hidden=!(ios&&!safari);
-    sh.classList.add("open");
+    $("sheet").hidden=false});
+  $("sheetClose").addEventListener("click",function(){$("sheet").hidden=true});
+  $("sheet").addEventListener("click",function(e){if(e.target===$("sheet"))$("sheet").hidden=true});
+  $("shareBtn").addEventListener("click",function(){try{navigator.share({title:document.title,url:location.href}).catch(function(){})}catch(e){}});
+  $("copyBtn").addEventListener("click",function(){
+    var u=pageUrl(),c=$("copyBtn");
+    function ok(){c.textContent="تم النسخ ✓"}
+    function fb(){var x=document.createElement("textarea");x.value=u;x.style.cssText="position:fixed;opacity:0";document.body.appendChild(x);x.select();try{document.execCommand("copy");ok()}catch(e){c.textContent="انسخه يدوياً"}document.body.removeChild(x)}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,fb);else fb();
   });
-  document.getElementById("ishx").addEventListener("click",cl);
-  sh.addEventListener("click",function(e){if(e.target===sh)cl()});
 })();
 </script>
 </body>
