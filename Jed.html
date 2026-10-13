@@ -393,7 +393,7 @@ $("tdy").addEventListener("click",function(){manual=false;syncToday();cards()});
 function monthList(keep){
   if(!keep||VM<0)VM=st.m;
   var M0=ST[VM],n=ML[VM],t=selT(),t0=today(),a=new Date(M0),z=new Date(M0+(n-1)*DAY);
-  var o='<div class="mnav"><button type="button" data-nv="-1" aria-label="الشهر السابق"'+(VM===0?' disabled':'')+'><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><b>('+(VM+1)+') '+HM[VM]+' 1448هـ<small>'+GM[a.getUTCMonth()]+(a.getUTCMonth()!==z.getUTCMonth()?' – '+GM[z.getUTCMonth()]:'')+' '+z.getUTCFullYear()+'م</small></b><button type="button" data-nv="1" aria-label="الشهر التالي"'+(VM===11?' disabled':'')+'><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button></div>';
+  var o='<div class="mnav"><button type="button" data-nv="-1" aria-label="الشهر السابق"'+(VM===0?' disabled':'')+'><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><b>شهر ('+(VM+1)+') '+HM[VM]+' 1448هـ<small>'+GM[a.getUTCMonth()]+(a.getUTCMonth()!==z.getUTCMonth()?' – '+GM[z.getUTCMonth()]:'')+' '+z.getUTCFullYear()+'م</small></b><button type="button" data-nv="1" aria-label="الشهر التالي"'+(VM===11?' disabled':'')+'><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button></div>';
   o+='<div class="gpk"><b>اختر المناوبة</b><div class="gb">'+L.map(function(l,g){return'<button type="button" data-g="'+g+'" class="g'+g+(g===MYG?' on':'')+'" aria-pressed="'+(g===MYG)+'" aria-label="المجموعة '+GN[g]+'">'+l+'</button>'}).join("")+'</div></div>';
   if(MYG<0){$("mt").innerHTML=o;return}
   o+='<div class="vl'+(DROP?' drop':'')+'">';DROP=false;
