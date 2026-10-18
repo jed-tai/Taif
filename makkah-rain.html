@@ -81,6 +81,9 @@ td.cell::before{content:"";position:absolute;inset:3px;border-radius:4px;backgro
 .dark-tiles .basemap{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 .ctl{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
 input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 14px}
+.chip[aria-pressed="true"]{background:var(--rain);border-color:var(--rain);color:var(--surface)}
 .legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:.82rem;color:var(--muted);margin-top:8px}
 .legend i{display:inline-block;width:14px;height:12px;border-radius:2px;vertical-align:-1px;margin-inline-end:3px}
 .about{border-top:1px solid var(--line);padding-top:16px}
@@ -127,15 +130,23 @@ input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
   </section>
 
   <section>
-    <h2>السحب والمطر الآن</h2>
+    <h2>الخريطة</h2>
+    <div class="tabs" role="group" aria-label="ما تعرضه الخريطة">
+      <button class="chip" type="button" data-view="sat" aria-pressed="true">السحب الآن</button>
+      <button class="chip" type="button" data-view="0" aria-pressed="false">مطر مؤكد: اليوم</button>
+      <button class="chip" type="button" data-view="1" aria-pressed="false">غداً</button>
+      <button class="chip" type="button" data-view="2" aria-pressed="false">بعد غد</button>
+    </div>
     <div id="map"></div>
-    <div class="ctl">
+    <div class="ctl" id="satctl">
       <button class="btn" id="play" type="button">تشغيل</button>
       <input type="range" id="slider" min="0" max="8" value="8" aria-label="وقت صورة القمر الصناعي">
       <span id="rtime" class="status"></span>
     </div>
-    <div class="legend"><span><i style="background:#9aa3ab"></i>سحب (كلما ابيضّت كانت أعلى وأبرد)</span><span><i style="background:#2f8fdc"></i><i style="background:#f1c232"></i><i style="background:#d62728"></i>مطر يهطل الآن، من الخفيف إلى الغزير</span></div>
-    <p class="note">صور حقيقية من القمر الصناعي الأوروبي Meteosat لآخر ساعتين، كل 15 دقيقة، وتصل متأخرة حوالي نصف ساعة. للتحذيرات الرسمية: <a href="https://ncm.gov.sa" target="_blank" rel="noopener">المركز الوطني للأرصاد</a>.</p>
+    <div class="legend" id="lg-sat"><span><i style="background:#9aa3ab"></i>سحب (كلما ابيضّت كانت أعلى وأبرد)</span><span><i style="background:#2f8fdc"></i><i style="background:#f1c232"></i><i style="background:#d62728"></i>مطر يهطل الآن، من الخفيف إلى الغزير</span></div>
+    <div class="legend" id="lg-agree" hidden><span><i style="background:var(--rain);opacity:.45"></i>اتفاق قوي (كل النماذج عدا واحد)</span><span><i style="background:var(--rain)"></i>اتفاق تام: كل النماذج تتوقع مطراً</span><span id="ag-time"></span></div>
+    <p class="note" id="note-agree" hidden>الخريطة لا تلوّن إلا المناطق التي تتفق فيها النماذج على مطر 1 مم أو أكثر في ذلك اليوم. المكان الملوّن توقعه قوي جداً، والمكان الفاضي إما بلا مطر أو غير محسوم. اضغط على أي مكان لترى تفاصيله.</p>
+    <p class="note" id="note-sat">صور حقيقية من القمر الصناعي الأوروبي Meteosat لآخر ساعتين، كل 15 دقيقة، وتصل متأخرة حوالي نصف ساعة. للتحذيرات الرسمية: <a href="https://ncm.gov.sa" target="_blank" rel="noopener">المركز الوطني للأرصاد</a>.</p>
   </section>
 
   <section class="about">
@@ -427,6 +438,7 @@ function initMap(){
   rainLayer = L.tileLayer.wms(WMS, {layers:'msg_iodc:h63', format:'image/png', transparent:true, version:'1.3.0', opacity:0.9, time:satTimes[8]}).addTo(map);
   irLayer.on('tileerror', () => { $('rtime').textContent = 'تعذر تحميل صورة هذا الوقت'; });
   ALL.forEach(c => L.circleMarker([c.lat, c.lon], {radius:3, weight:1, color:'#0B5F7A', fillColor:'#ffffff', fillOpacity:1}).bindTooltip(c.n, {direction:'top'}).addTo(map));
+  map.on('click', agreeClick);
   showFrame(8);
 }
 function showFrame(i){
@@ -442,7 +454,124 @@ $('play').onclick = () => {
   $('play').textContent = 'إيقاف';
   timer = setInterval(() => showFrame((fi + 1) % 9), 1200);
 };
-$('refresh').onclick = () => { load(true); if (map){ stop(); satTimes = satTimesNow(); showFrame(8); } };
+$('refresh').onclick = () => { load(true); if (map){ stop(); satTimes = satTimesNow(); showFrame(8); if (view !== 'sat'){ agData = null; try{localStorage.removeItem('rf-agree')}catch(e){} setView(view); } } };
+
+
+/* ---------- خريطة المطر المؤكد (اتفاق النماذج) ---------- */
+const AG = {lat0:12, lat1:32, lon0:34, lon1:60, step:2};
+AG.nlat = (AG.lat1-AG.lat0)/AG.step + 1; AG.nlon = (AG.lon1-AG.lon0)/AG.step + 1;
+const AG_PTS = [];
+for (let la = AG.lat0; la <= AG.lat1; la += AG.step) for (let lo = AG.lon0; lo <= AG.lon1; lo += AG.step) AG_PTS.push([la, lo]);
+const AG_MODELS = [
+  ['ecmwf_ifs025','gfs_seamless','icon_seamless','ukmo_seamless','gem_seamless','jma_seamless'],
+  ['ecmwf_ifs025','gfs_seamless','icon_seamless']
+];
+const AG_MM = 1;
+let agData = null, agOverlay = null, view = 'sat', agLoading = null;
+
+async function fetchAgree(){
+  for (const models of AG_MODELS){
+    const out = [];
+    let bad = false;
+    for (let k = 0; k < AG_PTS.length; k += 50){
+      const b = AG_PTS.slice(k, k+50);
+      const u = `https://api.open-meteo.com/v1/forecast?latitude=${b.map(x=>x[0]).join(',')}&longitude=${b.map(x=>x[1]).join(',')}&daily=precipitation_sum&models=${models.join(',')}&forecast_days=3&timezone=${TZ}`;
+      let r = await fetch(u);
+      if (r.status === 429){ await new Promise(ok => setTimeout(ok, 20000)); r = await fetch(u); }
+      if (r.status === 400){ bad = true; break; }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      let j = await r.json(); if (!Array.isArray(j)) j = [j];
+      j.forEach(pt => {
+        const per = [];
+        for (const key in pt.daily) if (key.startsWith('precipitation_sum')) per.push(pt.daily[key]);
+        out.push(per);
+      });
+    }
+    if (bad) continue;
+    return {at: Date.now(), n: AG_PTS.length, models: models.length, pts: out};
+  }
+  throw new Error('models');
+}
+
+async function loadAgree(force){
+  let c = null;
+  try { c = JSON.parse(localStorage.getItem('rf-agree')); } catch(e){}
+  if (c && c.n === AG_PTS.length && !force && Date.now() - c.at < 60*60*1000){ agData = c; return; }
+  try {
+    agData = await fetchAgree();
+    try { localStorage.setItem('rf-agree', JSON.stringify(agData)); } catch(e){}
+  } catch(e){
+    if (c && c.n === AG_PTS.length) agData = c; else throw e;
+  }
+}
+
+function agreeAt(i, day){
+  const per = agData.pts[i] || [];
+  const vals = per.map(a => a[day]).filter(v => v != null);
+  return {n: vals.length, yes: vals.filter(v => v >= AG_MM).length, mean: vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : 0};
+}
+
+function drawAgree(day){
+  const small = document.createElement('canvas');
+  small.width = AG.nlon; small.height = AG.nlat;
+  const ctx = small.getContext('2d');
+  const img = ctx.createImageData(AG.nlon, AG.nlat);
+  const col = getComputedStyle(document.documentElement).getPropertyValue('--rain').trim() || '#0B7A9C';
+  const rgb = [1,3,5].map(o => parseInt(col.slice(o, o+2), 16));
+  AG_PTS.forEach(([la, lo], i) => {
+    const a = agreeAt(i, day);
+    let alpha = 0;
+    if (a.n >= 3 && a.yes === a.n) alpha = 0.85;
+    else if (a.n >= 3 && a.yes >= a.n - 1) alpha = 0.4;
+    const o = (((AG.lat1 - la)/AG.step) * AG.nlon + (lo - AG.lon0)/AG.step) * 4;
+    img.data[o] = rgb[0]; img.data[o+1] = rgb[1]; img.data[o+2] = rgb[2]; img.data[o+3] = Math.round(alpha*255);
+  });
+  ctx.putImageData(img, 0, 0);
+  const big = document.createElement('canvas'), S = 48;
+  big.width = AG.nlon*S; big.height = AG.nlat*S;
+  const b = big.getContext('2d');
+  b.imageSmoothingEnabled = true; b.imageSmoothingQuality = 'high'; b.filter = 'blur(16px)';
+  b.drawImage(small, 0, 0, big.width, big.height);
+  const bounds = [[AG.lat0 - AG.step/2, AG.lon0 - AG.step/2], [AG.lat1 + AG.step/2, AG.lon1 + AG.step/2]];
+  if (!agOverlay) agOverlay = L.imageOverlay(big.toDataURL('image/png'), bounds, {interactive:false});
+  else agOverlay.setUrl(big.toDataURL('image/png'));
+  if (!map.hasLayer(agOverlay)) agOverlay.addTo(map);
+  const t = new Date(agData.at).toLocaleTimeString('ar-SA-u-nu-latn',{hour:'numeric',minute:'2-digit',timeZone:TZ});
+  $('ag-time').textContent = `${agData.models} نماذج · تحديث ${t}`;
+}
+
+async function setView(v){
+  view = v; stop();
+  document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v));
+  const sat = v === 'sat';
+  $('satctl').hidden = !sat; $('lg-sat').hidden = !sat; $('note-sat').hidden = !sat;
+  $('lg-agree').hidden = sat; $('note-agree').hidden = sat;
+  if (!map) return;
+  if (sat){
+    if (agOverlay) map.removeLayer(agOverlay);
+    irLayer.addTo(map); rainLayer.addTo(map);
+    return;
+  }
+  map.removeLayer(irLayer); map.removeLayer(rainLayer);
+  if (!agData){
+    $('ag-time').textContent = 'جاري جمع توقعات النماذج للجزيرة…';
+    try { agLoading = agLoading || loadAgree(); await agLoading; }
+    catch(e){ $('ag-time').textContent = 'الخدمة مشغولة الآن، جرّب بعد دقيقة'; agLoading = null; return; }
+    agLoading = null;
+  }
+  if (view === v) drawAgree(+v);
+}
+
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+
+function agreeClick(e){
+  if (view === 'sat' || !agData) return;
+  const yi = Math.round((e.latlng.lat - AG.lat0)/AG.step), xi = Math.round((e.latlng.lng - AG.lon0)/AG.step);
+  if (yi < 0 || yi >= AG.nlat || xi < 0 || xi >= AG.nlon) return;
+  const a = agreeAt(yi*AG.nlon + xi, +view);
+  const verdict = a.yes === a.n ? 'مطر مؤكد تقريباً' : a.yes >= a.n - 1 ? 'مطر مرجّح بقوة' : a.yes === 0 ? 'لا مطر متوقع' : 'غير محسوم';
+  L.popup().setLatLng(e.latlng).setContent(`<b>${verdict}</b><br>${a.yes} من ${a.n} نماذج تتوقع مطراً<br>متوسط الكمية ${r1(a.mean)} مم`).openOn(map);
+}
 
 /* ---------- البدء ---------- */
 buildPicker();
