@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>رادار أمطار مكة</title>
+<title>رادار أمطار الجزيرة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;700&display=swap">
@@ -32,7 +32,9 @@ h1{font:700 1.7rem/1.2 var(--f-display);margin:0;text-wrap:balance}
 h2{font:500 1.15rem/1.3 var(--f-display);margin:0 0 10px}
 .sub{color:var(--muted);margin:6px 0 14px;font-size:.92rem}
 main{display:flex;flex-direction:column;gap:26px;padding-block:8px 40px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
+.pick{display:flex;align-items:center;gap:10px;font-weight:600}
+.pick select{font:inherit;font-weight:500;flex:1;max-width:320px;min-width:0;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.pick select:focus-visible{outline:2px solid var(--rain);outline-offset:2px}
 .chip{font:inherit;font-size:.92rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 14px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--rain);border-color:var(--rain);color:var(--surface)}
 .chip:focus-visible,button:focus-visible{outline:2px solid var(--rain);outline-offset:2px}
@@ -63,6 +65,7 @@ tr:last-child td{border-bottom:0}
 button.act{font:inherit;font-weight:600;background:var(--rain);color:var(--surface);border:0;border-radius:10px;padding:7px 16px;cursor:pointer}
 button.ghost{font:inherit;background:transparent;color:var(--rain);border:1px solid var(--line);border-radius:10px;padding:6px 14px;cursor:pointer}
 input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.82rem;color:var(--muted);margin-top:8px}
 .legend i{display:inline-block;width:16px;height:12px;border-radius:2px;background:var(--rain)}
 .legend i.heavy{background:#5B3FB8;opacity:.85}
@@ -80,9 +83,9 @@ input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
 </head>
 <body>
 <header class="wrap">
-  <h1>رادار أمطار منطقة مكة</h1>
-  <p class="sub">توقع مجمّع من ثلاثة نماذج عالمية بأكثر من 100 سيناريو، مع رادار حي للسحب</p>
-  <nav id="cities" class="chips" aria-label="المدينة"></nav>
+  <h1>رادار أمطار الجزيرة العربية</h1>
+  <p class="sub">توقع مجمّع من ثلاثة نماذج عالمية بأكثر من 100 سيناريو، مع خريطة مطر لكل الجزيرة العربية</p>
+  <label class="pick"><span>المدينة</span><select id="cities"></select></label>
 </header>
 
 <main class="wrap">
@@ -111,21 +114,26 @@ input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
   </section>
 
   <section>
-    <h2>خريطة المطر للمنطقة</h2>
+    <h2>خريطة المطر</h2>
+    <div class="tabs" role="group" aria-label="نوع الخريطة">
+      <button class="chip" type="button" data-mode="fc" aria-pressed="true">توقع 48 ساعة</button>
+      <button class="chip" type="button" data-mode="sat" aria-pressed="false">السحب الآن (قمر صناعي)</button>
+    </div>
     <div id="map"></div>
     <div class="radar-ctl">
       <button class="act" id="play" type="button">تشغيل</button>
       <input type="range" id="slider" min="0" max="0" value="0" aria-label="ساعة التوقع على الخريطة">
       <span id="rtime" class="status"></span>
     </div>
-    <div class="legend" aria-hidden="true"><span>احتمال المطر:</span><i style="opacity:.25"></i>20%<i style="opacity:.5"></i>50%<i style="opacity:.8"></i>80%<i class="heavy"></i>غزير</div>
-    <p class="note" id="rnote">كل مربع يغطي حوالي 50 كم. حرّك الشريط لترى توقع المطر ساعة بساعة لمدة يومين. لصور الرادار الرسمية: <a href="https://ncm.gov.sa" target="_blank" rel="noopener">المركز الوطني للأرصاد</a>.</p>
+    <div class="legend" id="legend-fc" aria-hidden="true"><span>احتمال المطر:</span><i style="opacity:.25"></i>20%<i style="opacity:.5"></i>50%<i style="opacity:.8"></i>80%<i class="heavy"></i>غزير</div>
+    <div class="legend" id="legend-sat" aria-hidden="true" hidden><span>الرمادي والأبيض: سحب (كلما ابيضّت كانت أعلى وأبرد) · الألوان: مطر يهطل الآن</span></div>
+    <p class="note" id="rnote">«توقع 48 ساعة»: حرّك الشريط لترى أين يُتوقع المطر ساعة بساعة، واضغط على أي مكان لترى الاحتمال والكمية. «السحب الآن»: صور القمر الصناعي الأوروبي Meteosat لآخر ساعتين، وتصل متأخرة نصف ساعة تقريباً. للرادار الرسمي: <a href="https://ncm.gov.sa" target="_blank" rel="noopener">المركز الوطني للأرصاد</a>.</p>
   </section>
 
   <section class="about">
     <p><b>كيف يُحسب الاحتمال؟</b> كل نموذج (الأوروبي ECMWF، الأمريكي GFS، الألماني ICON) يشغّل عشرات السيناريوهات بظروف بداية مختلفة قليلاً. الاحتمال هو نسبة السيناريوهات التي تعطي مطراً، ثم نأخذ متوسط النماذج الثلاثة.</p>
     <p><b>حدود الدقة:</b> التوقع ممتاز للساعات القريبة وجيد ليومين أو ثلاثة، ويضعف بعد ذلك. الأمطار الرعدية في الطائف والمرتفعات محلية جداً، فقد تمطر في حي ولا تمطر في الحي المجاور.</p>
-    <p>البيانات: Open-Meteo، والخريطة: OpenStreetMap. <button class="ghost" id="refresh" type="button">تحديث الآن</button></p>
+    <p>البيانات: Open-Meteo و EUMETSAT، والخريطة: OpenStreetMap. <button class="ghost" id="refresh" type="button">تحديث الآن</button></p>
   </section>
 </main>
 
@@ -133,12 +141,35 @@ input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
 <script>
 const TZ = 'Asia/Riyadh';
 const CITIES = [
-  {n:'مكة المكرمة', lat:21.4225, lon:39.8262},
-  {n:'جدة',        lat:21.5433, lon:39.1728},
-  {n:'الطائف',      lat:21.2703, lon:40.4158},
-  {n:'رابغ',        lat:22.7986, lon:39.0349},
-  {n:'الليث',       lat:20.1500, lon:40.2667},
-  {n:'القنفذة',     lat:19.1264, lon:41.0789}
+  {n:'مكة المكرمة', lat:21.4225, lon:39.8262, g:'السعودية'},
+  {n:'جدة', lat:21.5433, lon:39.1728, g:'السعودية'},
+  {n:'الطائف', lat:21.2703, lon:40.4158, g:'السعودية'},
+  {n:'المدينة المنورة', lat:24.4672, lon:39.6111, g:'السعودية'},
+  {n:'الرياض', lat:24.7136, lon:46.6753, g:'السعودية'},
+  {n:'الدمام', lat:26.4207, lon:50.0888, g:'السعودية'},
+  {n:'الأحساء', lat:25.3833, lon:49.5864, g:'السعودية'},
+  {n:'بريدة', lat:26.3260, lon:43.9750, g:'السعودية'},
+  {n:'حائل', lat:27.5114, lon:41.7208, g:'السعودية'},
+  {n:'تبوك', lat:28.3838, lon:36.5550, g:'السعودية'},
+  {n:'الجوف', lat:29.9697, lon:40.2064, g:'السعودية'},
+  {n:'عرعر', lat:30.9753, lon:41.0381, g:'السعودية'},
+  {n:'ينبع', lat:24.0895, lon:38.0618, g:'السعودية'},
+  {n:'رابغ', lat:22.7986, lon:39.0349, g:'السعودية'},
+  {n:'الباحة', lat:20.0129, lon:41.4677, g:'السعودية'},
+  {n:'أبها', lat:18.2164, lon:42.5053, g:'السعودية'},
+  {n:'جازان', lat:16.8892, lon:42.5511, g:'السعودية'},
+  {n:'نجران', lat:17.5656, lon:44.2289, g:'السعودية'},
+  {n:'الليث', lat:20.1500, lon:40.2667, g:'السعودية'},
+  {n:'القنفذة', lat:19.1264, lon:41.0789, g:'السعودية'},
+  {n:'الكويت', lat:29.3759, lon:47.9774, g:'الخليج واليمن'},
+  {n:'المنامة', lat:26.2285, lon:50.5860, g:'الخليج واليمن'},
+  {n:'الدوحة', lat:25.2854, lon:51.5310, g:'الخليج واليمن'},
+  {n:'أبوظبي', lat:24.4539, lon:54.3773, g:'الخليج واليمن'},
+  {n:'دبي', lat:25.2048, lon:55.2708, g:'الخليج واليمن'},
+  {n:'مسقط', lat:23.5880, lon:58.3829, g:'الخليج واليمن'},
+  {n:'صلالة', lat:17.0151, lon:54.0924, g:'الخليج واليمن'},
+  {n:'صنعاء', lat:15.3694, lon:44.1910, g:'الخليج واليمن'},
+  {n:'عدن', lat:12.7855, lon:45.0187, g:'الخليج واليمن'}
 ];
 const MODELS = [
   {id:'ecmwf_ifs025', n:'الأوروبي', s:'ECMWF'},
@@ -153,14 +184,14 @@ try { const s = localStorage.getItem('mk-city'); if (s !== null && CITIES[+s]) c
 
 /* ---------- المدن ---------- */
 function drawChips(){
-  $('cities').innerHTML = '';
-  CITIES.forEach((c,i) => {
-    const b = document.createElement('button');
-    b.className = 'chip'; b.type = 'button'; b.textContent = c.n;
-    b.setAttribute('aria-pressed', i === cityIdx);
-    b.onclick = () => { cityIdx = i; try{localStorage.setItem('mk-city', i)}catch(e){} drawChips(); load(); if (map) map.setView([c.lat,c.lon], 8); };
-    $('cities').appendChild(b);
-  });
+  const sel = $('cities');
+  const groups = [...new Set(CITIES.map(c=>c.g))];
+  sel.innerHTML = groups.map(g => `<optgroup label="${g}">${CITIES.map((c,i)=>c.g===g?`<option value="${i}">${c.n}</option>`:'').join('')}</optgroup>`).join('');
+  sel.value = cityIdx;
+  sel.onchange = () => {
+    cityIdx = +sel.value; try{localStorage.setItem('mk-city', cityIdx)}catch(e){}
+    load(); const c = CITIES[cityIdx]; if (map) map.setView([c.lat,c.lon], 7);
+  };
 }
 
 /* ---------- الوقت ---------- */
@@ -327,77 +358,164 @@ function drawHourly(hours){
   $('hourly').innerHTML = s;
 }
 
-/* ---------- خريطة المطر (شبكة توقعات كل 0.5 درجة) ---------- */
-let map = null, cells = [], gridTimes = [], gridStart = 0, fi = 0, timer = null;
+/* ---------- الخريطة: توقع ناعم + صور القمر الصناعي ---------- */
+const LAT0 = 12, LAT1 = 32, LON0 = 34, LON1 = 60;
+const NLAT = LAT1 - LAT0 + 1, NLON = LON1 - LON0 + 1;
 const GRID = [];
-for (let la = 19.0; la <= 23.51; la += 0.5) for (let lo = 38.5; lo <= 42.01; lo += 0.5) GRID.push([+la.toFixed(2), +lo.toFixed(2)]);
+for (let la = LAT0; la <= LAT1; la++) for (let lo = LON0; lo <= LON1; lo++) GRID.push([la, lo]);
+const BOUNDS = [[LAT0 - 0.5, LON0 - 0.5], [LAT1 + 0.5, LON1 + 0.5]];
+const WMS = 'https://view.eumetsat.int/geoserver/ows';
+
+let map = null, mode = 'fc', fi = 0, timer = null;
+let gridData = null, gridTimes = [], gridStart = 0, fcOverlay = null;
+let satTimes = [], irLayer = null, rainLayer = null;
 
 function initMap(){
   if (!window.L) { $('rtime').textContent = 'تعذر تحميل الخريطة.'; return; }
   const dark = (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
   if (dark) $('map').classList.add('dark-tiles');
-  const c = CITIES[cityIdx];
-  map = L.map('map', {attributionControl:true}).setView([c.lat, c.lon], 7);
+  map = L.map('map', {attributionControl:true}).setView([23.5, 46], 5);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 12, attribution: '© OpenStreetMap · Open-Meteo'
+    maxZoom: 12, attribution: '© OpenStreetMap · Open-Meteo · EUMETSAT'
   }).addTo(map);
-  GRID.forEach(([la, lo]) => {
-    const r = L.rectangle([[la-0.25, lo-0.25], [la+0.25, lo+0.25]], {stroke:false, fillOpacity:0, interactive:true}).addTo(map);
-    cells.push(r);
-  });
-  CITIES.forEach(ct => L.circleMarker([ct.lat, ct.lon], {radius:4, weight:1.5, color:'#0B5F7A', fillColor:'#0B7A9C', fillOpacity:1})
-    .bindTooltip(ct.n, {permanent:true, direction:'top', offset:[0,-4]}).addTo(map));
+  CITIES.forEach(ct => L.circleMarker([ct.lat, ct.lon], {radius:3.5, weight:1.5, color:'#0B5F7A', fillColor:'#0B7A9C', fillOpacity:1, pane:'markerPane'})
+    .bindTooltip(ct.n, {direction:'top', offset:[0,-4]}).addTo(map));
+  map.on('click', onMapClick);
+  document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   loadGrid();
+  setMode('fc');
+}
+
+function setMode(m){
+  stop(); mode = m;
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+  $('legend-fc').hidden = m !== 'fc';
+  $('legend-sat').hidden = m !== 'sat';
+  if (m === 'fc'){
+    if (irLayer){ map.removeLayer(irLayer); map.removeLayer(rainLayer); }
+    if (fcOverlay) fcOverlay.addTo(map);
+    const n = gridTimes.length ? Math.min(48, gridTimes.length - gridStart) : 1;
+    $('slider').max = n - 1;
+    showFrame(0);
+  } else {
+    if (fcOverlay) map.removeLayer(fcOverlay);
+    satTimes = recentSatTimes();
+    if (!irLayer){
+      irLayer = L.tileLayer.wms(WMS, {layers:'msg_iodc:ir108', format:'image/png', transparent:true, version:'1.3.0', opacity:0.55, attribution:'EUMETSAT'});
+      rainLayer = L.tileLayer.wms(WMS, {layers:'msg_iodc:h63', format:'image/png', transparent:true, version:'1.3.0', opacity:0.9});
+      irLayer.on('tileerror', () => { $('rtime').textContent = 'تعذر تحميل صور القمر الصناعي لهذا الوقت'; });
+    }
+    irLayer.addTo(map); rainLayer.addTo(map);
+    $('slider').max = satTimes.length - 1;
+    showFrame(satTimes.length - 1);
+  }
+}
+
+// آخر ساعتين بخطوة 15 دقيقة، مع تأخير 45 دقيقة لأن الصور تُنشر بعد التقاطها
+function recentSatTimes(){
+  const step = 15*60*1000;
+  const last = Math.floor((Date.now() - 45*60*1000) / step) * step;
+  const out = [];
+  for (let k = 8; k >= 0; k--) out.push(new Date(last - k*step).toISOString().slice(0,19) + 'Z');
+  return out;
 }
 
 async function loadGrid(){
-  $('rtime').textContent = 'جاري تحميل خريطة المطر…';
-  const lat = GRID.map(g=>g[0]).join(','), lon = GRID.map(g=>g[1]).join(',');
-  const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=precipitation,precipitation_probability&forecast_days=3&timezone=${TZ}`;
+  if (mode === 'fc') $('rtime').textContent = 'جاري تحميل خريطة المطر…';
   try {
-    let res = await getJSON(u);
-    if (!Array.isArray(res)) res = [res];
-    gridTimes = res[0].hourly.time;
+    const batches = [];
+    for (let k = 0; k < GRID.length; k += 100) batches.push(GRID.slice(k, k+100));
+    const parts = await Promise.all(batches.map(b => {
+      const lat = b.map(g=>g[0]).join(','), lon = b.map(g=>g[1]).join(',');
+      return getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=precipitation,precipitation_probability&forecast_days=3&timezone=${TZ}`)
+        .then(r => Array.isArray(r) ? r : [r]);
+    }));
+    gridData = parts.flat().map(r => r.hourly);
+    gridTimes = gridData[0].time;
     gridStart = Math.max(0, gridTimes.indexOf(riyadhNowKey()));
-    cells.forEach((cell, k) => cell._h = res[k] ? res[k].hourly : null);
-    const n = Math.min(48, gridTimes.length - gridStart);
-    $('slider').max = n - 1;
-    showFrame(0);
+    if (mode === 'fc'){
+      $('slider').max = Math.min(48, gridTimes.length - gridStart) - 1;
+      showFrame(Math.min(fi, +$('slider').max));
+    }
   } catch(e){
-    $('rtime').textContent = 'تعذر تحميل خريطة المطر الآن';
+    if (mode === 'fc') $('rtime').textContent = 'تعذر تحميل خريطة المطر الآن';
   }
 }
 
-function showFrame(i){
-  fi = i;
-  const idx = gridStart + i;
-  cells.forEach(cell => {
-    const h = cell._h; if (!h) return;
+// يرسم التوقع كصورة ناعمة: نقطة لكل درجة، ثم تكبير مع تنعيم وتمويه خفيف
+function drawForecast(idx){
+  const small = document.createElement('canvas');
+  small.width = NLON; small.height = NLAT;
+  const sctx = small.getContext('2d');
+  const img = sctx.createImageData(NLON, NLAT);
+  gridData.forEach((h, k) => {
+    const [la, lo] = GRID[k];
+    const x = lo - LON0, y = LAT1 - la;
     const p = h.precipitation_probability?.[idx] ?? 0;
     const mm = h.precipitation?.[idx] ?? 0;
+    const o = (y*NLON + x) * 4;
     const heavy = mm >= 2;
-    const op = p < 15 && mm < 0.1 ? 0 : Math.min(0.85, 0.15 + p/120);
-    cell.setStyle({fillColor: heavy ? '#5B3FB8' : '#0B7A9C', fillOpacity: op});
-    cell.unbindTooltip();
-    if (op > 0) cell.bindTooltip(`${Math.round(p)}% · ${mm.toFixed(1)} مم`, {direction:'center'});
+    const a = (p < 15 && mm < 0.1) ? 0 : Math.min(0.85, 0.15 + p/120);
+    img.data[o]   = heavy ? 91  : 11;
+    img.data[o+1] = heavy ? 63  : 122;
+    img.data[o+2] = heavy ? 184 : 156;
+    img.data[o+3] = Math.round(a*255);
   });
-  $('slider').value = i;
-  const t = gridTimes[idx];
-  if (t){
-    const hr = +t.slice(11,13);
-    const hl = hr===0 ? '12 ص' : hr===12 ? '12 م' : hr<12 ? hr+' ص' : (hr-12)+' م';
-    $('rtime').textContent = i === 0 ? `الآن · ${hl}` : `${dayName(t.slice(0,10))} · ${hl}`;
+  sctx.putImageData(img, 0, 0);
+  const big = document.createElement('canvas');
+  const S = 24;
+  big.width = NLON*S; big.height = NLAT*S;
+  const bctx = big.getContext('2d');
+  bctx.imageSmoothingEnabled = true; bctx.imageSmoothingQuality = 'high';
+  bctx.filter = 'blur(10px)';
+  bctx.drawImage(small, 0, 0, big.width, big.height);
+  const url = big.toDataURL('image/png');
+  if (!fcOverlay) fcOverlay = L.imageOverlay(url, BOUNDS, {opacity:1, interactive:false}).addTo(map);
+  else fcOverlay.setUrl(url);
+}
+
+function hourLabel(t){
+  const hr = +t.slice(11,13);
+  return hr===0 ? '12 ص' : hr===12 ? '12 م' : hr<12 ? hr+' ص' : (hr-12)+' م';
+}
+
+function showFrame(i){
+  fi = i; $('slider').value = i;
+  if (mode === 'fc'){
+    if (!gridData) return;
+    const idx = gridStart + i;
+    drawForecast(idx);
+    const t = gridTimes[idx];
+    if (t) $('rtime').textContent = (i === 0 ? 'الآن' : dayName(t.slice(0,10))) + ' · ' + hourLabel(t) + ' · توقع';
+  } else {
+    const t = satTimes[i]; if (!t) return;
+    irLayer.setParams({time: t});
+    rainLayer.setParams({time: t});
+    const tm = new Date(t).toLocaleTimeString('ar-SA-u-nu-latn',{hour:'numeric',minute:'2-digit',timeZone:TZ});
+    $('rtime').textContent = `${tm} · صورة القمر الصناعي`;
   }
 }
+
+function onMapClick(e){
+  if (mode !== 'fc' || !gridData) return;
+  const la = Math.round(e.latlng.lat), lo = Math.round(e.latlng.lng);
+  if (la < LAT0 || la > LAT1 || lo < LON0 || lo > LON1) return;
+  const h = gridData[(la-LAT0)*NLON + (lo-LON0)];
+  const idx = gridStart + fi;
+  const p = Math.round(h.precipitation_probability?.[idx] ?? 0), mm = (h.precipitation?.[idx] ?? 0).toFixed(1);
+  L.popup().setLatLng(e.latlng).setContent(`احتمال المطر ${p}% · ${mm} مم`).openOn(map);
+}
+
 $('slider').addEventListener('input', e => { stop(); showFrame(+e.target.value); });
 function stop(){ clearInterval(timer); timer = null; $('play').textContent = 'تشغيل'; }
 $('play').addEventListener('click', () => {
   if (timer) return stop();
-  if (!gridTimes.length) return;
+  const max = +$('slider').max;
+  if (max < 1) return;
   $('play').textContent = 'إيقاف';
-  timer = setInterval(() => showFrame((fi+1) % (+$('slider').max + 1)), 600);
+  timer = setInterval(() => showFrame((fi+1) % (max+1)), mode === 'fc' ? 600 : 1100);
 });
-$('refresh').addEventListener('click', () => { load(); if (map) loadGrid(); });
+$('refresh').addEventListener('click', () => { load(); if (map){ loadGrid(); if (mode === 'sat') setMode('sat'); } });
 
 /* ---------- البدء ---------- */
 drawChips();
