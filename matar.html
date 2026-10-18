@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>مطر الجزيرة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;700&display=swap">
+<style>
+/* تخطيط: عمود واحد — الحكم الآن ← 48 ساعة ← 7 أيام ← تصويت النماذج ← القمر الصناعي ← المنهجية */
+:root{
+  --bg:#EDF1F4; --surface:#FFFFFF; --ink:#15202A; --muted:#5A6876; --line:#D4DCE3;
+  --rain:#0B7A9C; --rain-soft:#D5EEF5; --storm:#6A47C2;
+  --good:#3C7D4E; --warn:#A86A10; --bad:#B23B3B;
+  --f-display:"Reem Kufi","IBM Plex Sans Arabic",Tahoma,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C131A; --surface:#141E28; --ink:#E4EBF1; --muted:#8C9AA8; --line:#243240;
+  --rain:#4CC2E4; --rain-soft:#123341; --storm:#A58BF0;
+  --good:#6DBB82; --warn:#E0A64A; --bad:#E57575; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C131A; --surface:#141E28; --ink:#E4EBF1; --muted:#8C9AA8; --line:#243240;
+  --rain:#4CC2E4; --rain-soft:#123341; --storm:#A58BF0;
+  --good:#6DBB82; --warn:#E0A64A; --bad:#E57575; color-scheme:dark}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--f-body)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{padding-block:22px 4px}
+h1{font:700 1.7rem/1.2 var(--f-display);margin:0;text-wrap:balance}
+h2{font:500 1.15rem/1.3 var(--f-display);margin:0 0 10px}
+.sub{color:var(--muted);margin:6px 0 14px;font-size:.92rem}
+main{display:flex;flex-direction:column;gap:28px;padding-block:8px 40px}
+.where{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.where select{font:inherit;font-weight:500;flex:1;min-width:0;max-width:320px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+button{font:inherit;cursor:pointer}
+.btn{font-weight:600;background:var(--rain);color:var(--surface);border:0;border-radius:10px;padding:8px 14px}
+.ghost{background:transparent;color:var(--rain);border:1px solid var(--line);border-radius:10px;padding:7px 14px}
+select:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--rain);outline-offset:2px}
+.status{color:var(--muted);font-size:.86rem;min-height:1.4em}
+.status.err{color:var(--bad)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.verdict{padding:18px;display:grid;grid-template-columns:auto 1fr;gap:4px 18px;align-items:center}
+.big{font:700 3.2rem/1 var(--f-display);color:var(--rain);font-variant-numeric:tabular-nums}
+.verdict .lbl{font-weight:600}
+.verdict .why{color:var(--muted);font-size:.9rem}
+.verdict .meta{grid-column:1/-1;color:var(--muted);font-size:.86rem;display:flex;flex-wrap:wrap;gap:4px 16px;border-top:1px solid var(--line);padding-top:10px;margin-top:8px}
+.vote{grid-column:1/-1;display:flex;gap:4px;margin-top:8px}
+.vote i{flex:1;height:8px;border-radius:2px;background:var(--rain-soft)}
+.vote i.on{background:var(--rain)}
+.chart{padding:12px 10px 6px}
+.chart svg{width:100%;height:auto;display:block}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.day{padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.day .d{font-weight:600}
+.day .d small{color:var(--muted);font-weight:400;margin-inline-start:6px}
+.day .p{font:700 1.6rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--rain-soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--rain);border-radius:3px}
+.day .w{font-size:.85rem;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.pill{font-size:.74rem;padding:1px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.c-high{color:var(--good)}.c-mid{color:var(--warn)}.c-low{color:var(--bad)}.c-storm{color:var(--storm)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;font-size:.8rem;color:var(--muted);vertical-align:bottom}
+th small{display:block;font-weight:400}
+th:first-child,td:first-child{text-align:right}
+tr:last-child td{border-bottom:0}
+td.cell{position:relative}
+td.cell span{position:relative}
+td.cell::before{content:"";position:absolute;inset:3px;border-radius:4px;background:var(--rain);opacity:var(--o,0)}
+.note{color:var(--muted);font-size:.86rem;margin:8px 0 0;max-width:65ch}
+.note a{color:var(--rain)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 14px}
+.chip[aria-pressed="true"]{background:var(--rain);border-color:var(--rain);color:var(--surface)}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:.82rem;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:12px;border-radius:2px;vertical-align:-1px;margin-inline-end:3px}
+.about{border-top:1px solid var(--line);padding-top:16px}
+.about h2{font-size:1rem}
+.about p{margin:0 0 10px;max-width:65ch;color:var(--muted);font-size:.9rem}
+.mapwrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);height:min(72vh,620px);min-height:420px;max-width:100%}
+.mapwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.row{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.chip:disabled{opacity:.45;cursor:default}
+.row > span{font-size:.82rem;color:var(--muted);font-weight:600}
+@media (max-width:420px){.big{font-size:2.6rem}.mapwrap{min-height:380px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>مطر الجزيرة العربية</h1>
+  <p class="sub">خريطة متحركة للمطر والعواصف ساعة بساعة، وتحتها حكم 7 نماذج عالمية لمدينتك</p>
+  <div class="where">
+    <select id="place" aria-label="المكان"></select>
+    <button class="ghost" id="locate" type="button">موقعي الحالي</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="status" class="status" role="status"></div>
+
+  <section>
+    <div class="tabs" role="group" aria-label="ما تعرضه الخريطة">
+      <div class="row"><span>الطبقة</span>
+        <button class="chip" type="button" data-ov="rain" aria-pressed="true">المطر</button>
+        <button class="chip" type="button" data-ov="thunder" aria-pressed="false">العواصف الرعدية</button>
+        <button class="chip" type="button" data-ov="clouds" aria-pressed="false">السحب</button>
+        <button class="chip" type="button" data-ov="rainAccu" aria-pressed="false">مجموع الأمطار</button>
+        <button class="chip" type="button" data-ov="satellite" aria-pressed="false">القمر الصناعي</button>
+      </div>
+      <div class="row"><span>النموذج</span>
+        <button class="chip" type="button" data-pr="ecmwf" aria-pressed="true">الأوروبي ECMWF</button>
+        <button class="chip" type="button" data-pr="gfs" aria-pressed="false">الأمريكي GFS</button>
+        <button class="chip" type="button" data-pr="icon" aria-pressed="false">الألماني ICON</button>
+      </div>
+    </div>
+    <div class="mapwrap"><iframe id="windy" title="خريطة المطر المتحركة" loading="lazy" allowfullscreen></iframe></div>
+    <p class="note">اضغط زر التشغيل أسفل الخريطة لترى المطر يتحرك ساعة بساعة لعدة أيام، أو اسحب الشريط الزمني. قارن بين النماذج الثلاثة: إذا اتفقت على مكان المطر فالتوقع قوي. الخريطة من Windy.com.</p>
+  </section>
+
+  <section class="card verdict" aria-live="polite">
+    <div class="big" id="v-p">–</div>
+    <div><div class="lbl" id="v-l">احتمال المطر خلال 6 ساعات</div><div class="why" id="v-w"></div></div>
+    <div class="vote" id="v-vote" aria-hidden="true"></div>
+    <div class="meta" id="v-meta"></div>
+  </section>
+
+  <section>
+    <h2>الساعات الـ 48 القادمة</h2>
+    <div id="hourly" class="card chart"></div>
+  </section>
+
+  <section>
+    <h2>الأيام السبعة</h2>
+    <div id="days" class="days"></div>
+  </section>
+
+  <section>
+    <h2>تصويت النماذج</h2>
+    <div class="card tablewrap"><table id="models"></table></div>
+    <p class="note">كل خانة نسبة سيناريوهات النموذج التي تعطي مطراً في ذلك اليوم. تقارب الأرقام يعني توقعاً موثوقاً، وتباعدها يعني أن الأمر غير محسوم.</p>
+  </section>
+  <section class="about">
+    <h2>كيف نحسب التوقع</h2>
+    <p><b>تصويت لا تخمين:</b> نجمع سبعة نماذج من جهات مختلفة: الأوروبي ECMWF بنسختيه التقليدية والذكية، وجوجل WeatherNext، والأمريكي، والألماني، والبريطاني، والكندي. كل نموذج يشغّل عشرات السيناريوهات بظروف بداية مختلفة قليلاً. الاحتمال هو نسبة السيناريوهات الممطرة، ولكل نموذج صوت متساوٍ.</p>
+    <p><b>الثقة:</b> ترتفع حين تتفق النماذج، وتنخفض كلما ابتعد اليوم. خطر العواصف الرعدية محسوب من طاقة عدم الاستقرار في الجو (CAPE) مع احتمال المطر.</p>
+    <p><b>الحدود:</b> لا يوجد توقع بدقة 100٪. الأمطار الرعدية في مكة والطائف والمرتفعات محلية جداً، فقد تمطر في حي دون الحي المجاور. التوقع ممتاز للساعات القريبة، جيد ليومين أو ثلاثة، ويضعف بعد ذلك.</p>
+    <p>البيانات: Open-Meteo، والخريطة: Windy.com. <button class="ghost" id="refresh" type="button">تحديث الآن</button></p>
+  </section>
+</main>
+
+<script>
+const TZ = 'Asia/Riyadh';
+const TTL = 30*60*1000;
+const $ = id => document.getElementById(id);
+const r0 = v => Math.round(v);
+const r1 = v => (Math.round(v*10)/10).toString();
+
+const PLACES = [
+  ['السعودية — الغربية', [['مكة المكرمة',21.4225,39.8262],['جدة',21.5433,39.1728],['الطائف',21.2703,40.4158],['المدينة المنورة',24.4672,39.6111],['ينبع',24.0895,38.0618],['رابغ',22.7986,39.0349],['الليث',20.15,40.2667],['القنفذة',19.1264,41.0789],['الباحة',20.0129,41.4677]]],
+  ['السعودية — الوسطى والشرقية', [['الرياض',24.7136,46.6753],['بريدة',26.326,43.975],['الدمام',26.4207,50.0888],['الأحساء',25.3833,49.5864],['حفر الباطن',28.4328,45.9708]]],
+  ['السعودية — الشمال والجنوب', [['حائل',27.5114,41.7208],['تبوك',28.3838,36.555],['الجوف',29.9697,40.2064],['عرعر',30.9753,41.0381],['أبها',18.2164,42.5053],['خميس مشيط',18.3,42.7333],['جازان',16.8892,42.5511],['نجران',17.5656,44.2289]]],
+  ['الخليج واليمن', [['الكويت',29.3759,47.9774],['المنامة',26.2285,50.586],['الدوحة',25.2854,51.531],['أبوظبي',24.4539,54.3773],['دبي',25.2048,55.2708],['مسقط',23.588,58.3829],['صلالة',17.0151,54.0924],['صنعاء',15.3694,44.191],['عدن',12.7855,45.0187]]]
+];
+const ALL = PLACES.flatMap(([g, list]) => list.map(([n, lat, lon]) => ({n, lat, lon})));
+
+// النماذج: الاسم الأول هو المعرّف الحالي، والبقية أسماء قديمة احتياطية
+const ENS = [
+  {k:'ifs',  n:'الأوروبي',       s:'ECMWF IFS',     ids:['ecmwf_ifs025_ensemble','ecmwf_ifs025']},
+  {k:'aifs', n:'الأوروبي الذكي', s:'ECMWF AIFS',    ids:['ecmwf_aifs025_ensemble','ecmwf_aifs025']},
+  {k:'wn2',  n:'جوجل',           s:'WeatherNext 2', ids:['google_weathernext2_ensemble']},
+  {k:'gefs', n:'الأمريكي',       s:'NOAA GEFS',     ids:['ncep_gefs_seamless','gfs_seamless','ncep_gefs025','gfs025']},
+  {k:'icon', n:'الألماني',       s:'DWD ICON',      ids:['icon_seamless_eps','icon_seamless']},
+  {k:'ukmo', n:'البريطاني',      s:'Met Office',    ids:['ukmo_global_ensemble_20km']},
+  {k:'gem',  n:'الكندي',         s:'GEM',           ids:['gem_global_ensemble','gem_global']}
+];
+
+let place = ALL[0];
+try { const s = JSON.parse(localStorage.getItem('rf-place')); if (s && s.lat) place = s; } catch(e){}
+
+/* ---------- اختيار المكان ---------- */
+function buildPicker(){
+  const sel = $('place');
+  sel.innerHTML = PLACES.map(([g, list]) => `<optgroup label="${g}">${list.map(([n]) => `<option value="${n}">${n}</option>`).join('')}</optgroup>`).join('')
+    + `<option value="__me">موقعي الحالي</option>`;
+  sel.value = place.me ? '__me' : place.n;
+  sel.onchange = () => {
+    if (sel.value === '__me'){ $('locate').click(); return; }
+    setPlace(ALL.find(p => p.n === sel.value));
+  };
+}
+function setPlace(p){
+  place = p;
+  try { localStorage.setItem('rf-place', JSON.stringify(p)); } catch(e){}
+  $('place').value = p.me ? '__me' : p.n;
+  load();
+  drawMap();
+}
+$('locate').onclick = () => {
+  if (!navigator.geolocation){ setStatus('جهازك لا يدعم تحديد الموقع.', true); return; }
+  setStatus('جاري تحديد موقعك…');
+  navigator.geolocation.getCurrentPosition(
+    pos => setPlace({n:'موقعي الحالي', lat:+pos.coords.latitude.toFixed(3), lon:+pos.coords.longitude.toFixed(3), me:true}),
+    () => setStatus('لم نتمكن من تحديد موقعك. اسمح للمتصفح بالوصول للموقع أو اختر مدينة.', true),
+    {enableHighAccuracy:false, timeout:10000, maximumAge:600000}
+  );
+};
+
+/* ---------- أدوات الوقت ---------- */
+function nowKey(){
+  const p = {};
+  new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'})
+    .formatToParts(new Date()).forEach(x => p[x.type] = x.value);
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:00`;
+}
+const dayName = d => new Date(d+'T12:00:00Z').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn',{weekday:'long',timeZone:'UTC'});
+const dayNum  = d => new Date(d+'T12:00:00Z').toLocaleDateString('ar-SA-u-ca-gregory-nu-latn',{day:'numeric',month:'short',timeZone:'UTC'});
+const hourLbl = t => { const h = +t.slice(11,13); return h===0?'12 ص':h===12?'12 م':h<12?h+' ص':(h-12)+' م'; };
+function setStatus(t, err){ $('status').textContent = t; $('status').classList.toggle('err', !!err); }
+
+/* ---------- جلب البيانات ---------- */
+let goodIds = {};
+try { goodIds = JSON.parse(localStorage.getItem('rf-ids')) || {}; } catch(e){}
+
+async function fetchModel(m, lat, lon){
+  const ids = goodIds[m.k] ? [goodIds[m.k], ...m.ids.filter(x => x !== goodIds[m.k])] : m.ids;
+  for (const id of ids){
+    const u = `https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&hourly=precipitation&models=${id}&forecast_days=7&timezone=${TZ}`;
+    let r;
+    try { r = await fetch(u); } catch(e){ return null; }
+    if (r.status === 400) continue;           // اسم النموذج غير معروف، نجرب الاسم التالي
+    if (!r.ok) return null;
+    const j = await r.json();
+    const series = [];
+    for (const key in j.hourly){
+      if (!key.startsWith('precipitation')) continue;
+      const a = j.hourly[key];
+      let last = -1; for (let i=a.length-1; i>=0; i--) if (a[i] != null){ last = i; break; }
+      if (last >= 0) series.push({a, last});
+    }
+    if (!series.length) return null;
+    goodIds[m.k] = id;
+    try { localStorage.setItem('rf-ids', JSON.stringify(goodIds)); } catch(e){}
+    return {k:m.k, time:j.hourly.time, series};
+  }
+  return null;
+}
+
+async function fetchAll(p){
+  const models = (await Promise.all(ENS.map(m => fetchModel(m, p.lat, p.lon)))).filter(Boolean);
+  if (!models.length) throw new Error('no models');
+  const fu = `https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,relative_humidity_2m,cloud_cover,wind_speed_10m&hourly=cape&forecast_days=7&timezone=${TZ}`;
+  let fc = null;
+  try { const r = await fetch(fu); if (r.ok) fc = await r.json(); } catch(e){}
+  return {models, fc};
+}
+
+let loading = 0;
+async function load(force){
+  const p = place, my = ++loading;
+  const key = 'rf-data:' + p.lat.toFixed(2) + ',' + p.lon.toFixed(2);
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(key)); } catch(e){}
+  if (cached && !force && Date.now() - cached.at < TTL){ render(cached, p, false); return; }
+  setStatus(`جاري جمع توقعات النماذج لـ ${p.n}…`);
+  try {
+    const d = await fetchAll(p);
+    if (my !== loading) return;
+    d.at = Date.now();
+    try { localStorage.setItem(key, JSON.stringify(d)); } catch(e){}
+    render(d, p, false);
+  } catch(e){
+    if (my !== loading) return;
+    if (cached) render(cached, p, true);
+    else setStatus('تعذر جلب التوقعات الآن. تأكد من الإنترنت، وستُعاد المحاولة بعد دقيقة.', true);
+    setTimeout(() => { if (my === loading) load(true); }, 60000);
+  }
+}
+
+/* ---------- التحليل ---------- */
+function analyze(d){
+  const t = d.models[0].time;
+  let i0 = t.indexOf(nowKey()); if (i0 < 0) i0 = 0;
+  const byK = {}; d.models.forEach(m => byK[m.k] = m);
+
+  // لكل نموذج: نسبة السيناريوهات التي يتجاوز مجموع مطرها العتبة في النافذة [a,b)
+  function win(a, b, thr){
+    const per = {}, pool = [];
+    for (const m of ENS){
+      const md = byK[m.k]; if (!md) continue;
+      const sums = [];
+      for (const {a: arr, last} of md.series){
+        if (a > last) continue;
+        let s = 0, n = 0;
+        for (let i=a; i<b && i<arr.length; i++) if (arr[i] != null){ s += arr[i]; n++; }
+        if (n > 0) sums.push(s);
+      }
+      if (sums.length < 3) continue;
+      per[m.k] = sums.filter(s => s >= thr).length / sums.length * 100;
+      sums.sort((x,y)=>x-y);
+      pool.push({med: sums[Math.floor(sums.length*0.5)], hi: sums[Math.floor(sums.length*0.9)], n: sums.length});
+    }
+    const ps = Object.values(per);
+    if (!ps.length) return null;
+    return {
+      p: ps.reduce((s,x)=>s+x,0) / ps.length, per, models: ps.length,
+      yes: ps.filter(x => x >= 50).length,
+      spread: Math.max(...ps) - Math.min(...ps),
+      med: pool.reduce((s,x)=>s+x.med,0)/pool.length,
+      hi: pool.reduce((s,x)=>s+x.hi,0)/pool.length,
+      members: pool.reduce((s,x)=>s+x.n,0)
+    };
+  }
+
+  const capeT = d.fc?.hourly?.time || [], cape = d.fc?.hourly?.cape || [];
+  const capeMax = (from, to) => { let mx = 0; capeT.forEach((x,i) => { if (x >= from && x < to && cape[i] != null) mx = Math.max(mx, cape[i]); }); return mx; };
+
+  const next6 = win(i0, i0+6, 0.2);
+  const hours = [];
+  for (let i=i0; i<Math.min(i0+48, t.length); i++){ const w = win(Math.max(i-1,0), i+2, 0.2); hours.push({t:t[i], p: w ? w.p : 0, mm: w ? w.med : 0}); }
+  const today = t[i0].slice(0,10);
+  const dates = [...new Set(t.map(x => x.slice(0,10)))].filter(x => x >= today).slice(0,7);
+  const days = dates.map((dt, lead) => {
+    const a = t.findIndex(x => x.startsWith(dt));
+    const b = a + t.filter(x => x.startsWith(dt)).length;
+    const w = win(lead === 0 ? i0 : a, b, 0.5);
+    if (!w) return null;
+    return {d: dt, lead, cape: capeMax(lead === 0 ? t[i0] : dt+'T00:00', dt+'T24:00'), ...w};
+  }).filter(Boolean);
+  return {next6, hours, days};
+}
+
+const words = p => p < 10 ? 'لا مطر متوقع' : p < 30 ? 'احتمال ضعيف' : p < 60 ? 'محتمل' : p < 85 ? 'مرجّح' : 'شبه مؤكد';
+function confidence(w, lead){
+  const score = 100 - w.spread*0.7 - lead*7 - (w.models < 4 ? 15 : 0);
+  return score >= 70 ? ['ثقة عالية','c-high'] : score >= 45 ? ['ثقة متوسطة','c-mid'] : ['ثقة منخفضة','c-low'];
+}
+function storm(day){
+  if (day.cape >= 1500 && day.p >= 30) return 'عواصف رعدية محتملة بقوة';
+  if (day.cape >= 800 && day.p >= 20) return 'فرصة عواصف رعدية';
+  return '';
+}
+
+/* ---------- العرض ---------- */
+function render(d, p, stale){
+  const r = analyze(d);
+  const time = new Date(d.at).toLocaleTimeString('ar-SA-u-nu-latn',{hour:'numeric',minute:'2-digit',timeZone:TZ});
+  setStatus(stale
+    ? `بدون اتصال — آخر بيانات محفوظة الساعة ${time}`
+    : `${p.n} · تحديث ${time} · ${d.models.length} من ${ENS.length} نماذج · ${r.next6 ? r.next6.members : 0} سيناريو`, stale);
+
+  const n = r.next6;
+  if (n){
+    $('v-p').textContent = r0(n.p) + '%';
+    $('v-l').textContent = `احتمال المطر خلال 6 ساعات — ${words(n.p)}`;
+    const amt = n.med >= 0.2 ? ` الكمية المرجحة ${r1(n.med)} مم، وقد تصل ${r1(n.hi)} مم.` : (n.hi >= 0.5 ? ` في أسوأ الحالات حتى ${r1(n.hi)} مم.` : '');
+    $('v-w').textContent = `${n.yes} من ${n.models} نماذج ترجّح المطر.${amt}`;
+    $('v-vote').innerHTML = ENS.filter(m => n.per[m.k] != null).map(m => `<i class="${n.per[m.k] >= 50 ? 'on' : ''}" title="${m.n}"></i>`).join('');
+  }
+  const cur = d.fc?.current;
+  const st = r.days[0] ? storm(r.days[0]) : '';
+  $('v-meta').innerHTML = (cur
+    ? `<span>الحرارة ${r0(cur.temperature_2m)}°</span><span>الرطوبة ${r0(cur.relative_humidity_2m)}%</span><span>الغيوم ${r0(cur.cloud_cover)}%</span><span>الرياح ${r0(cur.wind_speed_10m)} كم/س</span>` : '')
+    + (st ? `<span class="c-storm">اليوم: ${st}</span>` : '');
+
+  drawHourly(r.hours);
+
+  $('days').innerHTML = r.days.map(dd => {
+    const [cl, cc] = confidence(dd, dd.lead);
+    const label = dd.lead === 0 ? 'اليوم' : dd.lead === 1 ? 'غداً' : dayName(dd.d);
+    return `<article class="card day">
+      <div class="d">${label}<small>${dayNum(dd.d)}</small></div>
+      <div class="p">${r0(dd.p)}%</div>
+      <div class="bar"><i style="width:${Math.max(2, dd.p)}%"></i></div>
+      <div class="w">${words(dd.p)}${dd.hi >= 1 ? ` · حتى ${r1(dd.hi)} مم` : ''}</div>
+      <div class="tags"><span class="pill ${cc}">${cl}</span>${storm(dd) ? `<span class="pill c-storm">رعد</span>` : ''}</div>
+    </article>`;
+  }).join('');
+
+  const shown = ENS.filter(m => d.models.some(x => x.k === m.k));
+  $('models').innerHTML =
+    `<thead><tr><th>اليوم</th>${shown.map(m => `<th>${m.n}<small>${m.s}</small></th>`).join('')}<th>المتوسط</th></tr></thead><tbody>` +
+    r.days.map(dd => `<tr><td>${dd.lead===0?'اليوم':dd.lead===1?'غداً':dayName(dd.d)}</td>${
+      shown.map(m => { const v = dd.per[m.k]; return v == null ? '<td>—</td>' : `<td class="cell" style="--o:${(v/100*0.55).toFixed(2)}"><span>${r0(v)}%</span></td>`; }).join('')
+    }<td><b>${r0(dd.p)}%</b></td></tr>`).join('') + `</tbody>`;
+}
+
+function drawHourly(hours){
+  const W = 720, H = 190, padT = 14, padB = 34, padS = 36;
+  const cw = W - padS - 8, ch = H - padT - padB;
+  const bw = cw / Math.max(hours.length, 1);
+  const y = p => padT + ch - (p/100)*ch;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="احتمال المطر لكل ساعة خلال 48 ساعة">`;
+  [0,25,50,75,100].forEach(g => {
+    s += `<line x1="8" x2="${W-padS}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" stroke-width="1"/>`;
+    s += `<text x="${W-padS+6}" y="${y(g)+4}" fill="var(--muted)" font-size="11">${g}%</text>`;
+  });
+  hours.forEach((h, i) => {
+    const x = W - padS - (i+1)*bw;   // الزمن يسير من اليمين إلى اليسار
+    const op = h.p < 10 ? 0.35 : 0.55 + h.p/250;
+    s += `<rect x="${x+1}" y="${y(h.p)}" width="${Math.max(bw-2,1)}" height="${Math.max(padT+ch-y(h.p),0.5)}" rx="1.5" fill="var(--rain)" fill-opacity="${op}"><title>${hourLbl(h.t)} — ${r0(h.p)}%${h.mm >= 0.1 ? ' · '+r1(h.mm)+' مم' : ''}</title></rect>`;
+    const hr = +h.t.slice(11,13);
+    if (i === 0 || hr % 6 === 0){
+      const lbl = i === 0 ? 'الآن' : hr === 0 ? dayName(h.t.slice(0,10)) : hourLbl(h.t);
+      s += `<line x1="${x+bw}" x2="${x+bw}" y1="${padT+ch}" y2="${padT+ch+5}" stroke="var(--muted)"/>`;
+      s += `<text x="${x+bw}" y="${H-12}" fill="${hr===0?'var(--ink)':'var(--muted)'}" font-size="11" text-anchor="middle">${lbl}</text>`;
+    }
+  });
+  $('hourly').innerHTML = s + `</svg>`;
+}
+
+/* ---------- الخريطة المتحركة (Windy) ---------- */
+let ov = 'rain', pr = 'ecmwf';
+try { ov = localStorage.getItem('mt-ov') || ov; pr = localStorage.getItem('mt-pr') || pr; } catch(e){}
+function windySrc(){
+  const q = new URLSearchParams({
+    lat: place.lat.toFixed(3), lon: place.lon.toFixed(3),
+    detailLat: place.lat.toFixed(3), detailLon: place.lon.toFixed(3),
+    zoom: '6', level: 'surface', overlay: ov, product: ov === 'satellite' ? 'satellite' : pr,
+    menu: '', message: 'true', marker: 'true', calendar: 'now', pressure: '', type: 'map',
+    location: 'coordinates', detail: '', metricWind: 'km/h', metricTemp: '°C', radarRange: '-1'
+  });
+  return 'https://embed.windy.com/embed2.html?' + q.toString();
+}
+function drawMap(){
+  $('windy').src = windySrc();
+  document.querySelectorAll('[data-ov]').forEach(b => b.setAttribute('aria-pressed', b.dataset.ov === ov));
+  document.querySelectorAll('[data-pr]').forEach(b => { b.setAttribute('aria-pressed', b.dataset.pr === pr); b.disabled = ov === 'satellite'; });
+}
+document.querySelectorAll('[data-ov]').forEach(b => b.onclick = () => { ov = b.dataset.ov; try{localStorage.setItem('mt-ov', ov)}catch(e){} drawMap(); });
+document.querySelectorAll('[data-pr]').forEach(b => b.onclick = () => { pr = b.dataset.pr; try{localStorage.setItem('mt-pr', pr)}catch(e){} drawMap(); });
+$('refresh').onclick = () => { load(true); drawMap(); };
+
+/* ---------- البدء ---------- */
+buildPicker();
+load();
+drawMap();
+setInterval(load, 15*60*1000);
+</script>
+</body>
+</html>
