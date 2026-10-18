@@ -63,6 +63,11 @@ tr:last-child td{border-bottom:0}
 button.act{font:inherit;font-weight:600;background:var(--rain);color:var(--surface);border:0;border-radius:10px;padding:7px 16px;cursor:pointer}
 button.ghost{font:inherit;background:transparent;color:var(--rain);border:1px solid var(--line);border-radius:10px;padding:6px 14px;cursor:pointer}
 input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:.82rem;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:16px;height:12px;border-radius:2px;background:var(--rain)}
+.legend i.heavy{background:#5B3FB8;opacity:.85}
+.dark-tiles .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}
+.dark-tiles .leaflet-overlay-pane{filter:none}
 .note{color:var(--muted);font-size:.86rem;margin:8px 0 0;max-width:65ch}
 .note a{color:var(--rain)}
 .status{color:var(--muted);font-size:.86rem;min-height:1.4em}
@@ -106,20 +111,21 @@ input[type=range]{flex:1;min-width:140px;accent-color:var(--rain)}
   </section>
 
   <section>
-    <h2>الرادار الحي</h2>
+    <h2>خريطة المطر للمنطقة</h2>
     <div id="map"></div>
     <div class="radar-ctl">
       <button class="act" id="play" type="button">تشغيل</button>
-      <input type="range" id="slider" min="0" max="0" value="0" aria-label="وقت إطار الرادار">
+      <input type="range" id="slider" min="0" max="0" value="0" aria-label="ساعة التوقع على الخريطة">
       <span id="rtime" class="status"></span>
     </div>
-    <p class="note" id="rnote">تغطية الرادار في هذه الخدمة داخل المملكة محدودة. للرادار الرسمي: <a href="https://ncm.gov.sa" target="_blank" rel="noopener">المركز الوطني للأرصاد</a>.</p>
+    <div class="legend" aria-hidden="true"><span>احتمال المطر:</span><i style="opacity:.25"></i>20%<i style="opacity:.5"></i>50%<i style="opacity:.8"></i>80%<i class="heavy"></i>غزير</div>
+    <p class="note" id="rnote">كل مربع يغطي حوالي 50 كم. حرّك الشريط لترى توقع المطر ساعة بساعة لمدة يومين. لصور الرادار الرسمية: <a href="https://ncm.gov.sa" target="_blank" rel="noopener">المركز الوطني للأرصاد</a>.</p>
   </section>
 
   <section class="about">
     <p><b>كيف يُحسب الاحتمال؟</b> كل نموذج (الأوروبي ECMWF، الأمريكي GFS، الألماني ICON) يشغّل عشرات السيناريوهات بظروف بداية مختلفة قليلاً. الاحتمال هو نسبة السيناريوهات التي تعطي مطراً، ثم نأخذ متوسط النماذج الثلاثة.</p>
     <p><b>حدود الدقة:</b> التوقع ممتاز للساعات القريبة وجيد ليومين أو ثلاثة، ويضعف بعد ذلك. الأمطار الرعدية في الطائف والمرتفعات محلية جداً، فقد تمطر في حي ولا تمطر في الحي المجاور.</p>
-    <p>البيانات: Open-Meteo و RainViewer. <button class="ghost" id="refresh" type="button">تحديث الآن</button></p>
+    <p>البيانات: Open-Meteo، والخريطة: OpenStreetMap. <button class="ghost" id="refresh" type="button">تحديث الآن</button></p>
   </section>
 </main>
 
@@ -202,17 +208,21 @@ function analyze(e){
     const m = MODELS.find(m => k.endsWith('_'+m.id));
     if (!m) continue;
     const a = h[k];
-    if (a && a.some(v => v != null)) groups[m.id].push(a);
+    if (!a) continue;
+    let last = -1; for (let i=a.length-1; i>=0; i--) if (a[i] != null){ last = i; break; }
+    if (last >= 0) groups[m.id].push({a, last});
   }
   // نافذة زمنية [a,b): نسبة السيناريوهات التي تتجاوز العتبة لكل نموذج
   function win(a, b, thr){
     const per = [];
     for (const m of MODELS){
       const sums = [];
-      for (const arr of groups[m.id]){
+      for (const {a: arr, last} of groups[m.id]){
+        // بعض النماذج تعطي قيمة كل 3 أو 6 ساعات، فنقبل العضو ما دامت النافذة داخل مدى بياناته
+        if (a > last) continue;
         let s = 0, n = 0;
         for (let i=a; i<b && i<arr.length; i++) if (arr[i] != null){ s += arr[i]; n++; }
-        if (n >= (b-a)*0.5) sums.push(s);
+        if (n > 0) sums.push(s);
       }
       if (!sums.length){ per.push(null); continue; }
       sums.sort((x,y)=>x-y);
@@ -229,7 +239,7 @@ function analyze(e){
   let i0 = t.indexOf(riyadhNowKey()); if (i0 < 0) i0 = 0;
   const next6 = win(i0, i0+6, 0.2);
   const hours = [];
-  for (let i=i0; i<Math.min(i0+48, t.length); i++){ const w = win(i, i+1, 0.1); hours.push({t:t[i], p: w ? w.p : null, mm: w ? w.med : 0}); }
+  for (let i=i0; i<Math.min(i0+48, t.length); i++){ const w = win(Math.max(i-1, 0), i+2, 0.2); hours.push({t:t[i], p: w ? w.p : null, mm: w ? w.med : 0}); }
   const dates = [...new Set(t.map(x=>x.slice(0,10)))].filter(d => d >= t[i0].slice(0,10)).slice(0,7);
   const days = dates.map((d, lead) => {
     const a = t.findIndex(x=>x.startsWith(d)), b = a + t.filter(x=>x.startsWith(d)).length;
@@ -281,6 +291,7 @@ function render(data, stale){
       <span class="pill ${cc}">${cl}</span>
     </article>`;
   }).join('');
+  if (!r.days.length) setStatus('وصلت البيانات لكن بدون توقعات صالحة. اضغط «تحديث الآن» بعد قليل.', true);
 
   $('models').innerHTML =
     `<thead><tr><th>اليوم</th>${MODELS.map(m=>`<th>${m.n}<br><span style="font-weight:400">${m.s}</span></th>`).join('')}<th>الفرق</th></tr></thead><tbody>` +
@@ -316,58 +327,83 @@ function drawHourly(hours){
   $('hourly').innerHTML = s;
 }
 
-/* ---------- الرادار ---------- */
-let map = null, host = '', frames = [], layers = {}, fi = 0, timer = null;
-function initRadar(){
-  if (!window.L) { $('rnote').textContent = 'تعذر تحميل الخريطة.'; return; }
-  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+/* ---------- خريطة المطر (شبكة توقعات كل 0.5 درجة) ---------- */
+let map = null, cells = [], gridTimes = [], gridStart = 0, fi = 0, timer = null;
+const GRID = [];
+for (let la = 19.0; la <= 23.51; la += 0.5) for (let lo = 38.5; lo <= 42.01; lo += 0.5) GRID.push([+la.toFixed(2), +lo.toFixed(2)]);
+
+function initMap(){
+  if (!window.L) { $('rtime').textContent = 'تعذر تحميل الخريطة.'; return; }
+  const dark = (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+  if (dark) $('map').classList.add('dark-tiles');
   const c = CITIES[cityIdx];
   map = L.map('map', {attributionControl:true}).setView([c.lat, c.lon], 7);
-  L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?'dark_all':'light_all'}/{z}/{x}/{y}{r}.png`, {
-    maxZoom: 12, attribution: '© OpenStreetMap · © CARTO · RainViewer'
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 12, attribution: '© OpenStreetMap · Open-Meteo'
   }).addTo(map);
-  CITIES.forEach(ct => L.circleMarker([ct.lat, ct.lon], {radius:4, weight:1.5, color:'#0B7A9C', fillOpacity:.9})
+  GRID.forEach(([la, lo]) => {
+    const r = L.rectangle([[la-0.25, lo-0.25], [la+0.25, lo+0.25]], {stroke:false, fillOpacity:0, interactive:true}).addTo(map);
+    cells.push(r);
+  });
+  CITIES.forEach(ct => L.circleMarker([ct.lat, ct.lon], {radius:4, weight:1.5, color:'#0B5F7A', fillColor:'#0B7A9C', fillOpacity:1})
     .bindTooltip(ct.n, {permanent:true, direction:'top', offset:[0,-4]}).addTo(map));
-  loadFrames();
+  loadGrid();
 }
-async function loadFrames(){
+
+async function loadGrid(){
+  $('rtime').textContent = 'جاري تحميل خريطة المطر…';
+  const lat = GRID.map(g=>g[0]).join(','), lon = GRID.map(g=>g[1]).join(',');
+  const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=precipitation,precipitation_probability&forecast_days=3&timezone=${TZ}`;
   try {
-    const r = await getJSON('https://api.rainviewer.com/public/weather-maps.json');
-    host = r.host;
-    frames = [...(r.radar?.past||[]).map(f=>({...f,fc:false})), ...(r.radar?.nowcast||[]).map(f=>({...f,fc:true}))];
-    if (!frames.length) throw new Error('no frames');
-    $('slider').max = frames.length - 1;
-    const lastPast = (r.radar?.past||[]).length - 1;
-    showFrame(lastPast >= 0 ? lastPast : frames.length-1);
+    let res = await getJSON(u);
+    if (!Array.isArray(res)) res = [res];
+    gridTimes = res[0].hourly.time;
+    gridStart = Math.max(0, gridTimes.indexOf(riyadhNowKey()));
+    cells.forEach((cell, k) => cell._h = res[k] ? res[k].hourly : null);
+    const n = Math.min(48, gridTimes.length - gridStart);
+    $('slider').max = n - 1;
+    showFrame(0);
   } catch(e){
-    $('rtime').textContent = 'تعذر تحميل صور الرادار الآن';
+    $('rtime').textContent = 'تعذر تحميل خريطة المطر الآن';
   }
 }
+
 function showFrame(i){
-  fi = i; const f = frames[i]; if (!f) return;
-  if (!layers[f.path]){
-    layers[f.path] = L.tileLayer(`${host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`, {opacity:0, maxNativeZoom:7, maxZoom:12, zIndex:5}).addTo(map);
-  }
-  for (const p in layers) layers[p].setOpacity(p === f.path ? 0.8 : 0);
+  fi = i;
+  const idx = gridStart + i;
+  cells.forEach(cell => {
+    const h = cell._h; if (!h) return;
+    const p = h.precipitation_probability?.[idx] ?? 0;
+    const mm = h.precipitation?.[idx] ?? 0;
+    const heavy = mm >= 2;
+    const op = p < 15 && mm < 0.1 ? 0 : Math.min(0.85, 0.15 + p/120);
+    cell.setStyle({fillColor: heavy ? '#5B3FB8' : '#0B7A9C', fillOpacity: op});
+    cell.unbindTooltip();
+    if (op > 0) cell.bindTooltip(`${Math.round(p)}% · ${mm.toFixed(1)} مم`, {direction:'center'});
+  });
   $('slider').value = i;
-  const tm = new Date(f.time*1000).toLocaleTimeString('ar-SA-u-nu-latn',{hour:'numeric',minute:'2-digit',timeZone:TZ});
-  $('rtime').textContent = `${tm} · ${f.fc ? 'توقع' : 'مرصود'}`;
+  const t = gridTimes[idx];
+  if (t){
+    const hr = +t.slice(11,13);
+    const hl = hr===0 ? '12 ص' : hr===12 ? '12 م' : hr<12 ? hr+' ص' : (hr-12)+' م';
+    $('rtime').textContent = i === 0 ? `الآن · ${hl}` : `${dayName(t.slice(0,10))} · ${hl}`;
+  }
 }
 $('slider').addEventListener('input', e => { stop(); showFrame(+e.target.value); });
 function stop(){ clearInterval(timer); timer = null; $('play').textContent = 'تشغيل'; }
 $('play').addEventListener('click', () => {
   if (timer) return stop();
-  if (!frames.length) return;
+  if (!gridTimes.length) return;
   $('play').textContent = 'إيقاف';
-  timer = setInterval(() => showFrame((fi+1) % frames.length), 700);
+  timer = setInterval(() => showFrame((fi+1) % (+$('slider').max + 1)), 600);
 });
-$('refresh').addEventListener('click', () => { load(); if (map) { layers && Object.values(layers).forEach(l=>map.removeLayer(l)); layers = {}; loadFrames(); } });
+$('refresh').addEventListener('click', () => { load(); if (map) loadGrid(); });
 
 /* ---------- البدء ---------- */
 drawChips();
 load();
-initRadar();
-setInterval(load, 30*60*1000);
+initMap();
+setInterval(() => { load(); if (map) loadGrid(); }, 30*60*1000);
 </script>
 </body>
 </html>
