@@ -360,13 +360,11 @@ function newRun(){
 }
 function gameOver(){
   phase='over';balls=[];orbs=[];
-  const isRecord=!run.autoUsed&&run.score>st.best;
+  const isRecord=run.score>st.best;
   if(isRecord){st.best=run.score;st.bestLevel=run.level;save();pushScore()}
   $('overScore').textContent=fmt(run.score);
   $('overBest').textContent=fmt(st.best);
-  $('overRecord').hidden=!isRecord&&!run.autoUsed;
-  $('overRecord').textContent=run.autoUsed?'جولة باللعب التلقائي لا تُحسب في الترتيب':'رقم قياسي جديد!';
-  $('overRecord').style.color=run.autoUsed?'var(--muted)':'';
+  $('overRecord').hidden=!isRecord;
   $('overTitle').textContent=isRecord?'أحسنت!':'انتهت المحاولات';
   updateRank();
   $('dlgOver').hidden=false;
@@ -550,7 +548,6 @@ $('restart').addEventListener('click',()=>{if(!st.name){openStart();return}$('dl
 $('snd').addEventListener('click',()=>{st.sound=!st.sound;save();hud()});
 $('auto').addEventListener('click',()=>{
   st.auto=!st.auto;save();
-  if(st.auto&&(phase==='serve'||phase==='play'||phase==='clear')&&!run.autoUsed){run.autoUsed=true;toast('اللعب التلقائي شغّال','هذه الجولة لن تُحسب في الترتيب',1.8)}
   hud();
 });
 $('unmute').addEventListener('click',()=>{st.sound=true;save();blip(660,.1,'square',.05);hud()});
