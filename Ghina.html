@@ -157,7 +157,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-of
       <div><b>١</b><span>اسمع أمر الحَكَم ولا تستعجل، فالأمر الأول غالبًا فخ.</span></div>
       <div><b>٢</b><span>بعد لحظة تتغير القاعدة: لون ممنوع، أو لون جديد، أو «ما تغيّر شيء».</span></div>
       <div><b>٣</b><span>اضغط مربعًا واحدًا. ضغطتك نهائية، وكلما أسرعت زادت نقاطك.</span></div>
-      <div><b>٤</b><span>كل مستوى أسرع وأصعب: وقت أقل، ألوان أكثر، لوحة أكبر، ومربعات تتبدل أماكنها.</span></div>
+      <div><b>٤</b><span>كل مستوى أسرع وأصعب: وقت أقل، ألوان أكثر، لوحة أكبر، ومربعات تتبدل أماكنها. وفي المراحل الأخيرة يغيّر الحكم رأيه مرتين والألوان تتحرك.</span></div>
       <div><b>٥</b><span>أول من يصل إلى ١٠٠٠ نقطة يفوز.</span></div>
     </div>
     <div class="menu-btns">
@@ -266,7 +266,7 @@ const COLORS=[
 ];
 const AVATAR=['#ffd166','#7ee0c3','#ff9fb2','#a9c7ff'];
 const GOAL=1000, LIVES=3;
-const turnMs=l=>Math.max(2000,5000-(l-1)*300);
+const turnMs=l=>Math.max(1600,5000-(l-1)*330-(l>=7?300:0));
 const secTxt=ms=>ar((ms/1000).toFixed(1)).replace('.','٫');
 const $=s=>document.querySelector(s);
 const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
@@ -292,21 +292,29 @@ function drawSound(){$('#bSound').innerHTML=S.sound
 
 /* ---------- rounds ---------- */
 function makeSpec(level){
-  const n=level>=5?5:4,count=n*n;
+  const n=level>=8?6:level>=5?5:4,count=n*n;
   const pool=COLORS.slice(0,level>=4?8:level>=2?7:6);
   let tiles=[];pool.forEach(c=>tiles.push(c,c));while(tiles.length<count)tiles.push(pick(pool));
   tiles=shuffle(tiles.slice(0,count));
-  const bait=pick(pool), others=pool.filter(c=>c!==bait);
-  const r=Math.random();let type;
-  if(level>=3&&r<.2)type='ban2';else if(r<.55)type='switch';else if(r<.82)type='ban';else type='same';
-  const stroop=level>=3&&Math.random()<.6;
-  const spec={tiles,bait,type,n,reshuffle:level>=6,baitMs:Math.max(350,1150-level*100)+rnd(Math.max(120,350-level*25))};
-  if(type==='switch')spec.target=pick(others);
-  if(type==='ban2')spec.bait2=pick(others);
-  const ink=c=>stroop?pick(COLORS.filter(x=>x!==c)):c;
-  spec.ink={bait:ink(bait),target:spec.target&&ink(spec.target),bait2:spec.bait2&&ink(spec.bait2)};
+  const stroop=level>=3&&Math.random()<(level>=7?1:.6);
+  const spec={tiles,n,reshuffle:level>=6,moving:level>=8,
+    baitMs:Math.max(350,1150-level*100)+rnd(Math.max(120,350-level*25)),
+    ...rule(pool,level,stroop,true)};
+  if(level>=7&&Math.random()<.65)spec.second=rule(pool,level,true,false);
   return spec;
 }
+function rule(pool,level,stroop,allowSame){
+  const bait=pick(pool),others=pool.filter(c=>c!==bait);
+  const r=Math.random();let type;
+  if(level>=3&&r<(level>=7?.35:.2))type='ban2';else if(r<.6)type='switch';else if(r<.82||!allowSame)type='ban';else type='same';
+  const o={type,bait,target:null,bait2:null};
+  if(type==='switch')o.target=pick(others);
+  if(type==='ban2')o.bait2=pick(others);
+  const ink=c=>stroop?pick(COLORS.filter(x=>x!==c)):c;
+  o.ink={bait:ink(bait),target:o.target&&ink(o.target),bait2:o.bait2&&ink(o.bait2)};
+  return o;
+}
+function paint(){[...$('#board').children].forEach((t,k)=>{const c=S.spec.tiles[k];t.style.background=c.c;t.setAttribute('aria-label',c.name)})}
 function ok(spec,id){
   switch(spec.type){
     case 'switch':return id===spec.target.id;
@@ -359,7 +367,7 @@ function startTurn(){
   const lvl=levelNow();
   S.spec=makeSpec(lvl);S.T=turnMs(lvl);
   const board=$('#board');board.className='board locked';board.innerHTML='';
-  board.style.setProperty('--n',S.spec.n);board.style.gap=S.spec.n===5?'6px':'8px';
+  board.style.setProperty('--n',S.spec.n);board.style.gap=S.spec.n===6?'5px':S.spec.n===5?'6px':'8px';
   S.spec.tiles.forEach((c,i)=>{const t=document.createElement('button');t.className='tile';t.style.background=c.c;t.setAttribute('aria-label',c.name);t.dataset.i=i;
     t.addEventListener('pointerdown',e=>{e.preventDefault();choose(i)});t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i)}});board.appendChild(t)});
   $('#result').hidden=true;
@@ -373,6 +381,9 @@ function startTurn(){
     if(lvl===3)extra.push('الكلمات تخدعك بألوانها');
     if(lvl===5)extra.push('لوحة أكبر');
     if(lvl===6)extra.push('المربعات تتبدل!');
+    if(lvl===7)extra.push('الحكم قد يغيّر رأيه مرتين!');
+    if(lvl===8)extra.push('لوحة ٦×٦ والألوان تتحرك!');
+    if(lvl>=9)extra.push('أقصى سرعة!');
     bub.innerHTML=`<span>المستوى ${ar(lvl)}! الوقت ${secTxt(S.T)} ث${extra.length?'<br>'+extra.join('، '):''}</span>`;
     bub.classList.add('lvl');wait=1900;beep(520,.1,'sine');setTimeout(()=>beep(780,.15,'sine'),110);
   }else bub.textContent=`استعد… معك ${secTxt(S.T)} ث`;
@@ -393,10 +404,9 @@ function twist(){
   const bub=$('#bubble');bub.innerHTML=html;bub.classList.remove('flash');void bub.offsetWidth;bub.classList.add('flash');
   const r=$('#ref');r.classList.add('angry');r.classList.remove('talk');void r.offsetWidth;r.classList.add('talk');
   beep(220,.18,'sawtooth',.07);say(speech);
-  if(S.spec.reshuffle){
-    shuffle(S.spec.tiles);
-    [...$('#board').children].forEach((t,k)=>{const c=S.spec.tiles[k];t.style.background=c.c;t.setAttribute('aria-label',c.name)});
-  }
+  if(S.spec.reshuffle){shuffle(S.spec.tiles);paint()}
+  if(S.spec.second)S.timers.push(setTimeout(twist2,S.T*(.25+Math.random()*.2)));
+  if(S.spec.moving){const mv=()=>{if(S.phase!=='twist')return;shuffle(S.spec.tiles);paint();S.timers.push(setTimeout(mv,1000))};S.timers.push(setTimeout(mv,1000))}
   const TURN_MS=S.T;
   S.t0=performance.now();
   const fill=$('#fill'),secs=$('#secs');
@@ -407,6 +417,15 @@ function twist(){
     if(left<=0){finish(null,0);return}
     S.raf=requestAnimationFrame(tick)};
   S.raf=requestAnimationFrame(tick);
+}
+function twist2(){
+  if(S.phase!=='twist'||!S.spec.second)return;
+  Object.assign(S.spec,S.spec.second);S.spec.second=null;
+  const bub=$('#bubble');
+  bub.innerHTML=`<span><span class="no">غيّرت رأيي!</span> ${twistText(S.spec)[0]}</span>`;
+  bub.classList.remove('flash');void bub.offsetWidth;bub.classList.add('flash');
+  const r=$('#ref');r.classList.remove('talk');void r.offsetWidth;r.classList.add('talk');
+  beep(180,.2,'sawtooth',.08);
 }
 function choose(i){
   if(S.phase!=='bait'&&S.phase!=='twist')return;
