@@ -137,6 +137,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-of
 .trow.first{border-color:var(--ink)}
 .trow .gain{font-size:13px;color:var(--good);font-weight:700}
 
+#game.final .board{border-radius:16px;animation:alarm .9s infinite alternate}
+@keyframes alarm{from{box-shadow:0 0 0 3px var(--bad)}to{box-shadow:0 0 0 3px var(--bad),0 0 28px rgba(255,90,95,.55)}}
+#game.final .gfill{background:var(--bad)}
+#game.final .bubble.lvl{background:var(--bad)}
 .credit{text-align:center;color:var(--muted);font-size:14px;padding-top:4px;padding-bottom:40px}
 .credit b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -158,7 +162,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-of
       <div><b>٢</b><span>بعد لحظة تتغير القاعدة: لون ممنوع، أو لون جديد، أو «ما تغيّر شيء».</span></div>
       <div><b>٣</b><span>اضغط مربعًا واحدًا. ضغطتك نهائية، وكلما أسرعت زادت نقاطك.</span></div>
       <div><b>٤</b><span>كل مستوى أسرع وأصعب: وقت أقل، ألوان أكثر، لوحة أكبر، ومربعات تتبدل أماكنها. وفي المراحل الأخيرة يغيّر الحكم رأيه مرتين والألوان تتحرك.</span></div>
-      <div><b>٥</b><span>أول من يصل إلى ١٠٠٠ نقطة يفوز.</span></div>
+      <div><b>٥</b><span>أول من يصل إلى ١٠٠٠ نقطة يفوز. من ٨٥٠ نقطة تبدأ المرحلة الأخيرة: ١٫٥ ثانية فقط، والخطأ يخصم ٧٥ نقطة.</span></div>
     </div>
     <div class="menu-btns">
       <button class="btn" id="bSolo">العب وحدك</button>
@@ -266,7 +270,8 @@ const COLORS=[
 ];
 const AVATAR=['#ffd166','#7ee0c3','#ff9fb2','#a9c7ff'];
 const GOAL=1000, LIVES=3;
-const turnMs=l=>Math.max(1600,5000-(l-1)*330-(l>=7?300:0));
+const turnMs=l=>Math.max(1800,5000-(l-1)*380-(l>=7?300:0));
+const FINAL=850, FINAL_MS=1500, PENALTY=75;
 const secTxt=ms=>ar((ms/1000).toFixed(1)).replace('.','٫');
 const $=s=>document.querySelector(s);
 const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
@@ -291,16 +296,18 @@ function drawSound(){$('#bSound').innerHTML=S.sound
  $('#bSound').setAttribute('aria-label',S.sound?'كتم الصوت':'تشغيل الصوت')}
 
 /* ---------- rounds ---------- */
-function makeSpec(level){
+function makeSpec(level,fin){
+  if(fin)level=Math.max(level,9);
   const n=level>=8?6:level>=5?5:4,count=n*n;
   const pool=COLORS.slice(0,level>=4?8:level>=2?7:6);
   let tiles=[];pool.forEach(c=>tiles.push(c,c));while(tiles.length<count)tiles.push(pick(pool));
   tiles=shuffle(tiles.slice(0,count));
   const stroop=level>=3&&Math.random()<(level>=7?1:.6);
-  const spec={tiles,n,reshuffle:level>=6,moving:level>=8,
-    baitMs:Math.max(350,1150-level*100)+rnd(Math.max(120,350-level*25)),
-    ...rule(pool,level,stroop,true)};
-  if(level>=7&&Math.random()<.65)spec.second=rule(pool,level,true,false);
+  const spec={tiles,n,reshuffle:level>=6,moving:level>=7,moveMs:fin?550:level>=8?800:1000,
+    baitMs:fin?250+rnd(150):Math.max(350,1150-level*100)+rnd(Math.max(120,350-level*25)),
+    ...rule(pool,level,stroop,!fin),queue:[]};
+  if(fin){spec.queue.push(rule(pool,level,true,false));if(Math.random()<.5)spec.queue.push(rule(pool,level,true,false))}
+  else if(level>=6&&Math.random()<(level>=8?.8:.55))spec.queue.push(rule(pool,level,true,false));
   return spec;
 }
 function rule(pool,level,stroop,allowSame){
@@ -365,7 +372,9 @@ function score(p){
 function startTurn(){
   clearTimers();show('game');hud();
   const lvl=levelNow();
-  S.spec=makeSpec(lvl);S.T=turnMs(lvl);
+  S.fin=cur().score>=FINAL;if(!S.fin)cur().finSeen=false;
+  $('#game').classList.toggle('final',S.fin);
+  S.spec=makeSpec(lvl,S.fin);S.T=S.fin?FINAL_MS:turnMs(lvl);
   const board=$('#board');board.className='board locked';board.innerHTML='';
   board.style.setProperty('--n',S.spec.n);board.style.gap=S.spec.n===6?'5px':S.spec.n===5?'6px':'8px';
   S.spec.tiles.forEach((c,i)=>{const t=document.createElement('button');t.className='tile';t.style.background=c.c;t.setAttribute('aria-label',c.name);t.dataset.i=i;
@@ -375,7 +384,11 @@ function startTurn(){
   const bub=$('#bubble');bub.classList.remove('flash','lvl');
   $('#ref').classList.remove('angry','talk');
   let wait=900;
-  if(S.mode==='solo'&&lvl>(S.lastLevel||1)){
+  if(S.fin&&!cur().finSeen){
+    cur().finSeen=true;
+    bub.innerHTML=`<span>المرحلة الأخيرة!<br>${secTxt(S.T)} ث فقط، والخطأ يخصم ${ar(PENALTY)} نقطة</span>`;
+    bub.classList.add('lvl');wait=2400;[300,240,200].forEach((f,k)=>setTimeout(()=>beep(f,.2,'sawtooth',.07),k*180));
+  }else if(S.mode==='solo'&&lvl>(S.lastLevel||1)&&!S.fin){
     const extra=[];
     if(lvl===2||lvl===4)extra.push('لون جديد');
     if(lvl===3)extra.push('الكلمات تخدعك بألوانها');
@@ -405,8 +418,8 @@ function twist(){
   const r=$('#ref');r.classList.add('angry');r.classList.remove('talk');void r.offsetWidth;r.classList.add('talk');
   beep(220,.18,'sawtooth',.07);say(speech);
   if(S.spec.reshuffle){shuffle(S.spec.tiles);paint()}
-  if(S.spec.second)S.timers.push(setTimeout(twist2,S.T*(.25+Math.random()*.2)));
-  if(S.spec.moving){const mv=()=>{if(S.phase!=='twist')return;shuffle(S.spec.tiles);paint();S.timers.push(setTimeout(mv,1000))};S.timers.push(setTimeout(mv,1000))}
+  if(S.spec.queue.length)S.timers.push(setTimeout(twist2,S.T*(S.fin?.22:.25+Math.random()*.2)));
+  if(S.spec.moving){const ms=S.spec.moveMs,mv=()=>{if(S.phase!=='twist')return;shuffle(S.spec.tiles);paint();S.timers.push(setTimeout(mv,ms))};S.timers.push(setTimeout(mv,ms))}
   const TURN_MS=S.T;
   S.t0=performance.now();
   const fill=$('#fill'),secs=$('#secs');
@@ -419,8 +432,9 @@ function twist(){
   S.raf=requestAnimationFrame(tick);
 }
 function twist2(){
-  if(S.phase!=='twist'||!S.spec.second)return;
-  Object.assign(S.spec,S.spec.second);S.spec.second=null;
+  if(S.phase!=='twist'||!S.spec.queue.length)return;
+  Object.assign(S.spec,S.spec.queue.shift());
+  if(S.spec.queue.length)S.timers.push(setTimeout(twist2,S.T*.25));
   const bub=$('#bubble');
   bub.innerHTML=`<span><span class="no">غيّرت رأيي!</span> ${twistText(S.spec)[0]}</span>`;
   bub.classList.remove('flash');void bub.offsetWidth;bub.classList.add('flash');
@@ -449,7 +463,8 @@ function finish(i,left,early){
     sub.textContent=`اخترت خلال ${secTxt(S.T-left)} ث`;beep(990,.1,'sine',.07);setTimeout(()=>beep(1320,.14,'sine',.07),90)}
   else{msg.className='msg bad';
     msg.textContent=i===null?'انتهى الوقت!':(early&&sp.type!=='same'?'وقعت في الفخ!':'خطأ!');
-    sub.textContent=reason(sp);beep(160,.3,'sawtooth',.07)}
+    sub.textContent=reason(sp);beep(160,.3,'sawtooth',.07);
+    if(S.fin){const lost=Math.min(PENALTY,p.score);p.score-=lost;msg.textContent+=` −${ar(lost)}`}}
   S.gains[S.turn]=pts;S.lastGood=good;
   score(p);
   if(S.mode==='solo'){
