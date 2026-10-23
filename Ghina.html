@@ -284,7 +284,7 @@ function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!
 let AC=null;
 function audio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}}
 function beep(f,d=.12,type='square',v=.06){if(!S.sound||!AC)return;try{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(AC.destination);const t=AC.currentTime;g.gain.exponentialRampToValueAtTime(.0001,t+d);o.start(t);o.stop(t+d)}catch(e){}}
-function say(t){if(!S.sound||!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=1.2;speechSynthesis.speak(u)}catch(e){}}
+function say(t){}
 function drawSound(){$('#bSound').innerHTML=S.sound
  ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg>'
  :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
@@ -415,7 +415,6 @@ function choose(i){
 }
 function finish(i,left,early){
   const wasPhase=S.phase;clearTimers();S.phase='done';
-  try{speechSynthesis.cancel()}catch(e){}
   const board=$('#board'),tiles=[...board.children],sp=S.spec,p=cur();
   board.classList.add('locked','reveal');
   tiles.forEach((t,k)=>t.classList.toggle('ok',ok(sp,sp.tiles[k].id)));
@@ -516,7 +515,7 @@ $('#bStartParty').onclick=()=>{audio();startParty()};
 $('#bReady').onclick=()=>{audio();startTurn()};
 $('#bNext').onclick=next;
 $('#bHome').onclick=()=>{clearTimers();const b=+(store('lm_best')||0);$('#bestTxt').textContent=b?`أفضل نتيجة لك: ${ar(b)}`:'';show('menu')};
-$('#bSound').onclick=()=>{S.sound=!S.sound;store('lm_sound',S.sound?'1':'0');if(!S.sound)try{speechSynthesis.cancel()}catch(e){};drawSound()};
+$('#bSound').onclick=()=>{S.sound=!S.sound;store('lm_sound',S.sound?'1':'0');drawSound()};
 drawSound();
 </script>
 </body>
