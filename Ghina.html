@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="لعبة اللون الممنوع: الحكم يقلب القاعدة ومعك ثوانٍ لتختار اللون الصحيح. أول من يصل ١٠٠٠ نقطة يفوز.">
+<style>*,*::before,*::after{box-sizing:border-box}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>اللون الممنوع</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;700;800&display=swap">
+<style>
+/* Layout: one-screen arcade board — referee + speech bubble on top, timer strip, 4x4 color floor, result tray. Single dark theme by choice (a game hall at night). */
+:root{
+  color-scheme: dark;
+  --bg:#17152b;
+  --panel:#221f3d;
+  --line:#37325c;
+  --ink:#fbf3e4;
+  --muted:#a7a1c6;
+  --good:#3ccf7e;
+  --bad:#ff5a5f;
+  --display:"Lalezar","Tajawal",system-ui,sans-serif;
+  --body:"Tajawal",system-ui,"Segoe UI",Tahoma,sans-serif;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-block:14px 20px;gap:14px}
+.screen{display:flex;flex-direction:column;gap:16px;flex:1}
+h1,h2{font-family:var(--display);font-weight:400;margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:clamp(40px,12vw,58px)}
+h2{font-size:30px}
+p{margin:0;line-height:1.7;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.btn{font-family:var(--display);font-size:24px;padding:14px 20px 10px;border-radius:16px;background:var(--ink);color:var(--bg);
+  box-shadow:0 5px 0 #b9ae98;transition:transform .08s, box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #b9ae98}
+.btn.ghost{background:var(--panel);color:var(--ink);box-shadow:0 5px 0 #0e0c1d;border:1px solid var(--line)}
+.btn.ghost:active{box-shadow:0 1px 0 #0e0c1d}
+.small{font-size:14px;color:var(--muted)}
+
+/* menu */
+.hero{display:flex;flex-direction:column;gap:10px;padding-top:10px}
+.hero h1 .x{display:inline-block;position:relative;color:#2f7de1}
+.hero h1 .x::after{content:"";position:absolute;inset:48% -4px auto;height:6px;background:var(--bad);border-radius:3px;transform:rotate(-8deg)}
+.swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.swatches i{aspect-ratio:1;border-radius:8px;display:block}
+.rules{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px 18px;display:grid;gap:10px}
+.rules div{display:flex;gap:10px;align-items:baseline;line-height:1.6}
+.rules b{font-family:var(--display);font-weight:400;font-size:20px;min-width:22px;color:var(--ink)}
+.rules span{color:var(--muted)}
+.menu-btns{display:grid;gap:14px;margin-top:auto}
+
+/* setup */
+.plist{display:grid;gap:10px}
+.prow{display:flex;gap:10px;align-items:center}
+.prow .dot{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--display);font-size:20px;color:#17152b;padding-top:4px}
+.prow input{flex:1;min-width:0;font:inherit;font-size:18px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.prow button{width:40px;height:40px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:22px;color:var(--muted)}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row .btn{flex:1}
+
+/* game */
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 6px;font-weight:700}
+.chip .dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:14px;color:#17152b;padding-top:3px}
+.stat{text-align:left;font-variant-numeric:tabular-nums}
+.stat small{display:block;color:var(--muted);font-size:12px}
+.stat b{font-family:var(--display);font-weight:400;font-size:24px}
+.icon-btn{width:38px;height:38px;border-radius:12px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center}
+.icon-btn svg{width:20px;height:20px}
+
+.caller{display:flex;gap:10px;align-items:flex-end}
+.ref{width:78px;flex:none}
+.ref .brow{transition:transform .15s}
+.ref.angry .brow.l{transform:rotate(18deg)}
+.ref.angry .brow.r{transform:rotate(-18deg)}
+.ref .mouth{transition:transform .12s;transform-box:fill-box;transform-origin:center}
+.ref.talk .mouth{animation:talk .18s 4 alternate}
+@keyframes talk{to{transform:scaleY(.35)}}
+.bubble{flex:1;min-width:0;background:var(--ink);color:#17152b;border-radius:20px 20px 4px 20px;padding:14px 16px 10px;
+  font-family:var(--display);font-size:clamp(22px,6.6vw,30px);line-height:1.35;min-height:96px;display:flex;align-items:center;position:relative}
+.bubble .cw{padding:0 6px 0;border-radius:8px;background:#17152b;display:inline-block;line-height:1.3;margin-block:2px}
+.bubble.flash{animation:flash .35s}
+@keyframes flash{0%{transform:scale(1.06) rotate(-1.5deg);background:var(--bad);color:var(--ink)}100%{transform:none}}
+.bubble .no{color:var(--bad)}
+
+.timer{display:flex;align-items:center;gap:12px}
+.track{flex:1;height:12px;background:var(--panel);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.fill{height:100%;background:var(--ink);transform-origin:right;transform:scaleX(1)}
+.fill.low{background:var(--bad)}
+.secs{font-family:var(--display);font-size:28px;width:52px;text-align:center;font-variant-numeric:tabular-nums;padding-top:4px}
+
+.goal{display:flex;align-items:center;gap:10px}
+.gtrack{flex:1;height:8px;background:var(--panel);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.gfill{height:100%;background:linear-gradient(to left,#e8423f,#f5c931,#2fb36b,#2f7de1);transform-origin:right;transform:scaleX(0);transition:transform .5s}
+.goal .lives{display:flex;gap:3px}
+.goal .lives i{width:12px;height:12px;border-radius:50%;background:var(--bad)}
+.goal .lives i.off{background:var(--line)}
+.goal .small{font-variant-numeric:tabular-nums;white-space:nowrap}
+.bubble.lvl{background:#2f7de1;color:var(--ink)}
+.board{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:8px;width:min(100%,420px,48vh);margin:0 auto;aspect-ratio:1;max-width:100%}
+.tile{border-radius:14px;position:relative;box-shadow:inset 0 -6px 0 rgba(0,0,0,.22), inset 0 3px 0 rgba(255,255,255,.25);
+  transition:transform .12s, opacity .25s, filter .25s;touch-action:manipulation}
+.tile:active{transform:scale(.94)}
+.board.locked .tile{pointer-events:none}
+.board.reveal .tile:not(.ok){opacity:.28;filter:saturate(.4)}
+.board.reveal .tile.ok{outline:3px solid var(--ink);outline-offset:-3px}
+.tile.picked.good{animation:pop .4s}
+.tile.picked.wrong{animation:shake .4s;opacity:1!important;filter:none!important;outline:3px dashed var(--bad);outline-offset:-3px}
+@keyframes pop{50%{transform:scale(1.12)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.token{position:absolute;inset:18%;border-radius:50%;background:var(--ink);color:#17152b;display:grid;place-items:center;
+  font-family:var(--display);font-size:clamp(16px,5vw,24px);padding-top:4px;box-shadow:0 4px 0 rgba(0,0,0,.35);animation:land .3s ease-out}
+@keyframes land{0%{transform:translateY(-30px) scale(.6);opacity:0}70%{transform:translateY(3px)}100%{transform:none;opacity:1}}
+
+.result{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.result .msg{font-family:var(--display);font-size:26px;line-height:1.2;padding-top:4px}
+.result .msg.good{color:var(--good)}
+.result .msg.bad{color:var(--bad)}
+.result p{font-size:14px}
+.result .btn{font-size:20px;padding:10px 18px 7px}
+
+/* handoff */
+.handoff{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;text-align:center}
+.big-dot{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:60px;color:#17152b;padding-top:12px;box-shadow:0 8px 0 rgba(0,0,0,.35)}
+
+/* scoreboard */
+.table{display:grid;gap:8px}
+.trow{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.trow .rank{font-family:var(--display);font-size:22px;width:24px;color:var(--muted);padding-top:3px}
+.trow .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);color:#17152b;padding-top:3px}
+.trow .nm{flex:1;min-width:0;font-weight:800;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow .pts{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums;padding-top:3px}
+.trow.first{border-color:var(--ink)}
+.trow .gain{font-size:13px;color:var(--good);font-weight:700}
+
+.credit{text-align:center;color:var(--muted);font-size:14px;padding-top:4px;padding-bottom:40px}
+.credit b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="app" dir="rtl">
+
+  <!-- MENU -->
+  <section class="screen" id="menu">
+    <div class="hero">
+      <h1>اللون <span class="x">الممنوع</span></h1>
+      <p>الحَكَم يقول لك «اذهب إلى الأزرق»، وفي نفس الثانية يقلب القاعدة. معك ٥ ثوانٍ فقط لتختار المربع الصحيح.</p>
+    </div>
+    <div class="swatches" aria-hidden="true" id="sw"></div>
+    <div class="rules">
+      <div><b>١</b><span>اسمع أمر الحَكَم ولا تستعجل، فالأمر الأول غالبًا فخ.</span></div>
+      <div><b>٢</b><span>بعد لحظة تتغير القاعدة: لون ممنوع، أو لون جديد، أو «ما تغيّر شيء».</span></div>
+      <div><b>٣</b><span>اضغط مربعًا واحدًا. ضغطتك نهائية، وكلما أسرعت زادت نقاطك.</span></div>
+      <div><b>٤</b><span>كل مستوى أسرع وأصعب: وقت أقل، ألوان أكثر، لوحة أكبر، ومربعات تتبدل أماكنها.</span></div>
+      <div><b>٥</b><span>أول من يصل إلى ١٠٠٠ نقطة يفوز.</span></div>
+    </div>
+    <div class="menu-btns">
+      <button class="btn" id="bSolo">العب وحدك</button>
+      <button class="btn ghost" id="bParty">العب مع أصدقائك</button>
+      <p class="small" id="bestTxt" style="text-align:center"></p>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="screen" id="setup" hidden>
+    <h2>مين بيلعب؟</h2>
+    <p>من ٢ إلى ٤ لاعبين على نفس الجوال. كل واحد يلعب دوره ثم يسلّم الجوال للي بعده. كل جولة أسرع من اللي قبلها، وأول من يتجاوز ١٠٠٠ نقطة في نهاية الجولة يفوز.</p>
+    <div class="plist" id="plist"></div>
+    <button class="btn ghost" id="bAdd">+ أضف لاعبًا</button>
+    <div class="row" style="margin-top:auto">
+      <button class="btn ghost" id="bBack1">رجوع</button>
+      <button class="btn" id="bStartParty">ابدأ</button>
+    </div>
+  </section>
+
+  <!-- HANDOFF -->
+  <section class="screen" id="handoff" hidden>
+    <div class="handoff">
+      <p id="hoRound"></p>
+      <div class="big-dot" id="hoDot"></div>
+      <h2 id="hoName"></h2>
+      <p>أعطِ الجوال لهذا اللاعب، والباقون لا يلمّحون!</p>
+      <button class="btn" id="bReady" style="min-width:200px">جاهز</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="game" hidden>
+    <div class="top">
+      <div class="chip"><span class="dot" id="gDot"></span><span id="gName"></span></div>
+      <div class="row" style="gap:14px;align-items:center;flex-wrap:nowrap">
+        <div class="stat"><small id="gLbl">الجولة</small><b id="gRound">١</b></div>
+        <div class="stat"><small>النقاط</small><b id="gScore">٠</b></div>
+        <button class="icon-btn" id="bSound" aria-label="الصوت"></button>
+      </div>
+    </div>
+
+    <div class="goal">
+      <span class="lives" id="gLives"></span>
+      <div class="gtrack"><div class="gfill" id="gGoal"></div></div>
+      <span class="small" id="gGoalTxt"></span>
+    </div>
+
+    <div class="caller">
+      <svg class="ref" id="ref" viewBox="0 0 80 96" aria-hidden="true">
+        <rect x="10" y="62" width="60" height="34" rx="14" fill="#fbf3e4"/>
+        <g fill="#17152b"><rect x="20" y="62" width="7" height="34"/><rect x="36.5" y="62" width="7" height="34"/><rect x="53" y="62" width="7" height="34"/></g>
+        <circle cx="40" cy="36" r="26" fill="#f2c9a0"/>
+        <path d="M14 32 Q16 8 40 8 Q64 8 66 32 Q56 20 40 20 Q24 20 14 32Z" fill="#3a2a22"/>
+        <rect class="brow l" x="22" y="26" width="12" height="3.5" rx="1.7" fill="#3a2a22" style="transform-box:fill-box;transform-origin:center"/>
+        <rect class="brow r" x="46" y="26" width="12" height="3.5" rx="1.7" fill="#3a2a22" style="transform-box:fill-box;transform-origin:center"/>
+        <circle cx="29" cy="35" r="3.4" fill="#17152b"/><circle cx="51" cy="35" r="3.4" fill="#17152b"/>
+        <ellipse class="mouth" cx="40" cy="48" rx="7" ry="5" fill="#7a2230"/>
+        <path d="M58 46 l12 -3 v8 z" fill="#c9c2b0"/><circle cx="72" cy="47" r="4" fill="#c9c2b0"/>
+      </svg>
+      <div class="bubble" id="bubble">استعد…</div>
+    </div>
+
+    <div class="timer">
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="secs" id="secs">5</div>
+    </div>
+
+    <div class="board locked" id="board"></div>
+
+    <div class="result" id="result" hidden>
+      <div>
+        <div class="msg" id="rMsg"></div>
+        <p id="rSub"></p>
+      </div>
+      <button class="btn" id="bNext">التالي</button>
+    </div>
+  </section>
+
+  <!-- TABLE -->
+  <section class="screen" id="table" hidden>
+    <h2 id="tTitle"></h2>
+    <p id="tSub"></p>
+    <div class="table" id="tRows"></div>
+    <div class="row" style="margin-top:auto">
+      <button class="btn ghost" id="bHome" hidden>القائمة</button>
+      <button class="btn" id="bTableNext"></button>
+    </div>
+  </section>
+
+  <footer class="credit">تصميم <b>غنى</b></footer>
+
+</div>
+
+<script>
+const COLORS=[
+  {id:'red',name:'الأحمر',c:'#e8423f'},
+  {id:'blue',name:'الأزرق',c:'#2f7de1'},
+  {id:'green',name:'الأخضر',c:'#2fb36b'},
+  {id:'yellow',name:'الأصفر',c:'#f5c931'},
+  {id:'orange',name:'البرتقالي',c:'#f08a24'},
+  {id:'purple',name:'البنفسجي',c:'#9a6bf2'},
+  {id:'pink',name:'الوردي',c:'#f06ba8'},
+  {id:'brown',name:'البني',c:'#94603e'}
+];
+const AVATAR=['#ffd166','#7ee0c3','#ff9fb2','#a9c7ff'];
+const GOAL=1000, LIVES=3;
+const turnMs=l=>Math.max(2000,5000-(l-1)*300);
+const secTxt=ms=>ar((ms/1000).toFixed(1)).replace('.','٫');
+const $=s=>document.querySelector(s);
+const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+
+let S={mode:null,players:[],round:0,turn:0,streak:0,spec:null,phase:'idle',sound:true,timers:[],raf:0,t0:0,gains:{}};
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+S.sound=store('lm_sound')!=='0';
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);window.scrollTo(0,0)}
+
+/* ---------- sound ---------- */
+let AC=null;
+function audio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}}
+function beep(f,d=.12,type='square',v=.06){if(!S.sound||!AC)return;try{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(AC.destination);const t=AC.currentTime;g.gain.exponentialRampToValueAtTime(.0001,t+d);o.start(t);o.stop(t+d)}catch(e){}}
+function say(t){if(!S.sound||!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=1.2;speechSynthesis.speak(u)}catch(e){}}
+function drawSound(){$('#bSound').innerHTML=S.sound
+ ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg>'
+ :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+ $('#bSound').setAttribute('aria-label',S.sound?'كتم الصوت':'تشغيل الصوت')}
+
+/* ---------- rounds ---------- */
+function makeSpec(level){
+  const n=level>=5?5:4,count=n*n;
+  const pool=COLORS.slice(0,level>=4?8:level>=2?7:6);
+  let tiles=[];pool.forEach(c=>tiles.push(c,c));while(tiles.length<count)tiles.push(pick(pool));
+  tiles=shuffle(tiles.slice(0,count));
+  const bait=pick(pool), others=pool.filter(c=>c!==bait);
+  const r=Math.random();let type;
+  if(level>=3&&r<.2)type='ban2';else if(r<.55)type='switch';else if(r<.82)type='ban';else type='same';
+  const stroop=level>=3&&Math.random()<.6;
+  const spec={tiles,bait,type,n,reshuffle:level>=6,baitMs:Math.max(350,1150-level*100)+rnd(Math.max(120,350-level*25))};
+  if(type==='switch')spec.target=pick(others);
+  if(type==='ban2')spec.bait2=pick(others);
+  const ink=c=>stroop?pick(COLORS.filter(x=>x!==c)):c;
+  spec.ink={bait:ink(bait),target:spec.target&&ink(spec.target),bait2:spec.bait2&&ink(spec.bait2)};
+  return spec;
+}
+function ok(spec,id){
+  switch(spec.type){
+    case 'switch':return id===spec.target.id;
+    case 'ban':return id!==spec.bait.id;
+    case 'ban2':return id!==spec.bait.id&&id!==spec.bait2.id;
+    case 'same':return id===spec.bait.id;
+  }
+}
+const cw=(c,ink)=>`<span class="cw" style="color:${ink.c}">${c.name}</span>`;
+function twistText(s){
+  const b=cw(s.bait,s.ink.bait);
+  switch(s.type){
+    case 'switch':return [`<span><span class="no">ممنوع</span> ${b}! اذهب إلى ${cw(s.target,s.ink.target)}</span>`,`${s.bait.name} ممنوع! اذهب إلى ${s.target.name}`];
+    case 'ban':return [`<span>${b} <span class="no">ممنوع!</span> قف على أي لون غيره</span>`,`${s.bait.name} ممنوع! أي لون غيره`];
+    case 'ban2':return [`<span>${b} و${cw(s.bait2,s.ink.bait2)} <span class="no">ممنوعان!</span> اختر لونًا ثالثًا</span>`,`${s.bait.name} و${s.bait2.name} ممنوعان!`];
+    case 'same':return [`<span>ما تغيّر شيء! اذهب إلى ${b}</span>`,`ما تغيّر شيء! ${s.bait.name}`];
+  }
+}
+function reason(s){
+  switch(s.type){
+    case 'switch':return `كان المطلوب ${s.target.name}.`;
+    case 'ban':return `أي لون ما عدا ${s.bait.name}.`;
+    case 'ban2':return `أي لون ما عدا ${s.bait.name} و${s.bait2.name}.`;
+    case 'same':return `القاعدة ما تغيّرت، المطلوب ${s.bait.name}.`;
+  }
+}
+
+/* ---------- play ---------- */
+const cur=()=>S.mode==='solo'?S.players[0]:S.players[S.turn];
+function levelNow(){return S.mode==='solo'?1+Math.floor(S.players[0].score/125):S.round+1}
+function clearTimers(){S.timers.forEach(clearTimeout);S.timers=[];cancelAnimationFrame(S.raf)}
+
+function hud(){
+  const p=cur();
+  $('#gDot').style.background=p.av;$('#gDot').textContent=p.name.trim()[0]||'؟';
+  $('#gName').textContent=p.name;
+  $('#gLbl').textContent='المستوى';
+  $('#gRound').textContent=ar(levelNow());
+  score(p);
+  $('#gLives').innerHTML=S.mode==='solo'?Array.from({length:LIVES},(_,k)=>`<i class="${k<S.lives?'':'off'}"></i>`).join(''):'';
+  $('#gLives').setAttribute('aria-label',S.mode==='solo'?`المحاولات المتبقية ${ar(S.lives)}`:'');
+}
+function score(p){
+  $('#gScore').textContent=ar(p.score);
+  $('#gGoal').style.transform=`scaleX(${Math.min(1,p.score/GOAL)})`;
+  $('#gGoalTxt').textContent=`${ar(p.score)} / ${ar(GOAL)}`;
+}
+function startTurn(){
+  clearTimers();show('game');hud();
+  const lvl=levelNow();
+  S.spec=makeSpec(lvl);S.T=turnMs(lvl);
+  const board=$('#board');board.className='board locked';board.innerHTML='';
+  board.style.setProperty('--n',S.spec.n);board.style.gap=S.spec.n===5?'6px':'8px';
+  S.spec.tiles.forEach((c,i)=>{const t=document.createElement('button');t.className='tile';t.style.background=c.c;t.setAttribute('aria-label',c.name);t.dataset.i=i;
+    t.addEventListener('pointerdown',e=>{e.preventDefault();choose(i)});t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i)}});board.appendChild(t)});
+  $('#result').hidden=true;
+  const fill=$('#fill');fill.style.transform='scaleX(1)';fill.classList.remove('low');$('#secs').textContent=ar(Math.ceil(S.T/1000));
+  const bub=$('#bubble');bub.classList.remove('flash','lvl');
+  $('#ref').classList.remove('angry','talk');
+  let wait=900;
+  if(S.mode==='solo'&&lvl>(S.lastLevel||1)){
+    const extra=[];
+    if(lvl===2||lvl===4)extra.push('لون جديد');
+    if(lvl===3)extra.push('الكلمات تخدعك بألوانها');
+    if(lvl===5)extra.push('لوحة أكبر');
+    if(lvl===6)extra.push('المربعات تتبدل!');
+    bub.innerHTML=`<span>المستوى ${ar(lvl)}! الوقت ${secTxt(S.T)} ث${extra.length?'<br>'+extra.join('، '):''}</span>`;
+    bub.classList.add('lvl');wait=1900;beep(520,.1,'sine');setTimeout(()=>beep(780,.15,'sine'),110);
+  }else bub.textContent=`استعد… معك ${secTxt(S.T)} ث`;
+  S.lastLevel=lvl;
+  S.phase='wait';
+  S.timers.push(setTimeout(()=>{bub.classList.remove('lvl');bait()},wait));
+}
+function bait(){
+  S.phase='bait';$('#board').classList.remove('locked');
+  $('#bubble').innerHTML=`<span>اذهب إلى ${cw(S.spec.bait,S.spec.ink.bait)}</span>`;
+  const r=$('#ref');r.classList.remove('talk');void r.offsetWidth;r.classList.add('talk');
+  beep(660,.09);say(`اذهب إلى ${S.spec.bait.name}`);
+  S.timers.push(setTimeout(twist,S.spec.baitMs));
+}
+function twist(){
+  S.phase='twist';
+  const [html,speech]=twistText(S.spec);
+  const bub=$('#bubble');bub.innerHTML=html;bub.classList.remove('flash');void bub.offsetWidth;bub.classList.add('flash');
+  const r=$('#ref');r.classList.add('angry');r.classList.remove('talk');void r.offsetWidth;r.classList.add('talk');
+  beep(220,.18,'sawtooth',.07);say(speech);
+  if(S.spec.reshuffle){
+    shuffle(S.spec.tiles);
+    [...$('#board').children].forEach((t,k)=>{const c=S.spec.tiles[k];t.style.background=c.c;t.setAttribute('aria-label',c.name)});
+  }
+  const TURN_MS=S.T;
+  S.t0=performance.now();
+  const fill=$('#fill'),secs=$('#secs');
+  const tick=now=>{
+    const left=Math.max(0,TURN_MS-(now-S.t0));
+    fill.style.transform=`scaleX(${left/TURN_MS})`;fill.classList.toggle('low',left<1500);
+    const s=Math.ceil(left/1000);if(secs.textContent!==ar(s)){secs.textContent=ar(s);if(s<=3&&s>0)beep(880,.05,'sine',.05)}
+    if(left<=0){finish(null,0);return}
+    S.raf=requestAnimationFrame(tick)};
+  S.raf=requestAnimationFrame(tick);
+}
+function choose(i){
+  if(S.phase!=='bait'&&S.phase!=='twist')return;
+  const left=S.phase==='bait'?S.T:Math.max(0,S.T-(performance.now()-S.t0));
+  finish(i,left,S.phase==='bait');
+}
+function finish(i,left,early){
+  const wasPhase=S.phase;clearTimers();S.phase='done';
+  try{speechSynthesis.cancel()}catch(e){}
+  const board=$('#board'),tiles=[...board.children],sp=S.spec,p=cur();
+  board.classList.add('locked','reveal');
+  tiles.forEach((t,k)=>t.classList.toggle('ok',ok(sp,sp.tiles[k].id)));
+  let good=false,pts=0;
+  if(i!==null){
+    const t=tiles[i];good=ok(sp,sp.tiles[i].id);
+    t.classList.add('picked',good?'good':'wrong');
+    const tok=document.createElement('span');tok.className='token';tok.style.background=p.av;tok.textContent=p.name.trim()[0]||'؟';t.appendChild(tok);
+  }
+  if(wasPhase==='bait'&&i!==null&&sp.type!=='same'){good=false}
+  const msg=$('#rMsg'),sub=$('#rSub');
+  if(good){pts=50+Math.round(left/S.T*50);p.score+=pts;msg.textContent=`صح! +${ar(pts)}`;msg.className='msg good';
+    sub.textContent=`اخترت خلال ${secTxt(S.T-left)} ث`;beep(990,.1,'sine',.07);setTimeout(()=>beep(1320,.14,'sine',.07),90)}
+  else{msg.className='msg bad';
+    msg.textContent=i===null?'انتهى الوقت!':(early&&sp.type!=='same'?'وقعت في الفخ!':'خطأ!');
+    sub.textContent=reason(sp);beep(160,.3,'sawtooth',.07)}
+  S.gains[S.turn]=pts;S.lastGood=good;
+  score(p);
+  if(S.mode==='solo'){
+    if(good)S.streak++;else{S.lives--;hud()}
+    $('#bNext').textContent=p.score>=GOAL?'فزت! النتيجة':S.lives<=0?'النتيجة':'الجولة التالية';
+  }else $('#bNext').textContent=S.turn<S.players.length-1?'سلّم الجوال':'نتيجة الجولة';
+  $('#result').hidden=false;
+  setTimeout(()=>$('#bNext').focus(),50);
+}
+function next(){
+  if(S.mode==='solo'){
+    if(S.players[0].score>=GOAL||S.lives<=0)soloOver();else startTurn();
+    return;
+  }
+  S.turn++;
+  if(S.turn<S.players.length)handoff();else roundTable();
+}
+
+/* ---------- solo ---------- */
+function startSolo(){S.mode='solo';S.streak=0;S.lives=LIVES;S.lastLevel=1;S.players=[{name:'أنت',score:0,av:AVATAR[0]}];S.turn=0;startTurn()}
+function soloOver(){
+  const p=S.players[0],won=p.score>=GOAL,best=Math.max(+(store('lm_best')||0),p.score);store('lm_best',best);
+  $('#tTitle').textContent=won?'فزت! وصلت إلى ١٠٠٠':'انتهت المحاولات';
+  $('#tSub').textContent=won?`وصلت المستوى ${ar(levelNow())} وأجبت ${ar(S.streak)} مرة صح.`:`أجبت ${ar(S.streak)} مرة صح ووصلت المستوى ${ar(levelNow())}. باقي لك ${ar(GOAL-p.score)} نقطة للفوز.`;
+  if(won){[523,659,784,1047].forEach((f,k)=>setTimeout(()=>beep(f,.18,'sine',.07),k*140))}
+  $('#tRows').innerHTML=`<div class="trow first"><span class="dot" style="background:${p.av}">أ</span><span class="nm">نقاطك</span><span class="pts">${ar(p.score)}</span></div>
+   <div class="trow"><span class="dot" style="background:var(--line);color:var(--ink)">★</span><span class="nm">أفضل نتيجة لك</span><span class="pts">${ar(best)}</span></div>`;
+  $('#bHome').hidden=false;$('#bTableNext').textContent='العب مرة ثانية';
+  $('#bTableNext').onclick=startSolo;show('table');
+}
+
+/* ---------- party ---------- */
+let draft=['لاعب ١','لاعب ٢'];
+function drawSetup(){
+  $('#plist').innerHTML='';
+  draft.forEach((n,i)=>{const r=document.createElement('div');r.className='prow';
+    r.innerHTML=`<span class="dot" style="background:${AVATAR[i]}">${(n.trim()[0]||'؟')}</span><input id="pn${i}" maxlength="14" aria-label="اسم اللاعب ${ar(i+1)}"><button aria-label="احذف" ${draft.length<=2?'hidden':''}>×</button>`;
+    const inp=r.querySelector('input');inp.value=n;
+    inp.addEventListener('input',()=>{draft[i]=inp.value;r.querySelector('.dot').textContent=inp.value.trim()[0]||'؟'});
+    r.querySelector('button').onclick=()=>{draft.splice(i,1);drawSetup()};
+    $('#plist').appendChild(r)});
+  $('#bAdd').hidden=draft.length>=4;
+}
+function startParty(){
+  S.mode='party';S.round=0;
+  S.players=draft.map((n,i)=>({name:n.trim()||`لاعب ${ar(i+1)}`,score:0,av:AVATAR[i]}));
+  S.turn=0;S.gains={};handoff();
+}
+function handoff(){
+  const p=cur();
+  $('#hoRound').textContent=`الجولة ${ar(S.round+1)} · معك ${secTxt(turnMs(S.round+1))} ث`;
+  $('#hoDot').style.background=p.av;$('#hoDot').textContent=p.name[0];
+  $('#hoName').textContent=`دور ${p.name}`;
+  show('handoff');
+}
+function rows(){
+  const sorted=[...S.players.map((p,i)=>({...p,i}))].sort((a,b)=>b.score-a.score);
+  return sorted.map((p,k)=>`<div class="trow ${k===0?'first':''}"><span class="rank">${ar(k+1)}</span><span class="dot" style="background:${p.av}">${p.name[0]}</span><span class="nm">${p.name}</span>${S.gains[p.i]?`<span class="gain">+${ar(S.gains[p.i])}</span>`:''}<span class="pts">${ar(p.score)}</span></div>`).join('');
+}
+function roundTable(){
+  const sorted=[...S.players].sort((a,b)=>b.score-a.score);
+  const last=sorted[0].score>=GOAL;
+  const tie=sorted.length>1&&sorted[0].score===sorted[1].score;
+  $('#tTitle').textContent=last?(tie?'تعادل عند خط الفوز!':`الفائز: ${sorted[0].name}`):`نتيجة الجولة ${ar(S.round+1)}`;
+  $('#tSub').textContent=last?`تجاوز ${ar(GOAL)} نقطة في الجولة ${ar(S.round+1)}.`:`الأقرب للفوز يحتاج ${ar(GOAL-sorted[0].score)} نقطة. الجولة القادمة أسرع: ${secTxt(turnMs(S.round+2))} ث.`;
+  if(last){[523,659,784,1047].forEach((f,k)=>setTimeout(()=>beep(f,.18,'sine',.07),k*140))}
+  $('#tRows').innerHTML=rows();
+  $('#bHome').hidden=!last;
+  $('#bTableNext').textContent=last?'مباراة جديدة':'الجولة التالية';
+  $('#bTableNext').onclick=last?()=>{startParty()}:()=>{S.round++;S.turn=0;S.gains={};handoff()};
+  show('table');
+}
+
+/* ---------- wire ---------- */
+$('#sw').innerHTML=COLORS.map(c=>`<i style="background:${c.c}"></i>`).join('');
+const best=+(store('lm_best')||0);if(best)$('#bestTxt').textContent=`أفضل نتيجة لك: ${ar(best)}`;
+$('#bSolo').onclick=()=>{audio();startSolo()};
+$('#bParty').onclick=()=>{audio();drawSetup();show('setup')};
+$('#bAdd').onclick=()=>{if(draft.length<4){draft.push(`لاعب ${ar(draft.length+1)}`);drawSetup()}};
+$('#bBack1').onclick=()=>show('menu');
+$('#bStartParty').onclick=()=>{audio();startParty()};
+$('#bReady').onclick=()=>{audio();startTurn()};
+$('#bNext').onclick=next;
+$('#bHome').onclick=()=>{clearTimers();const b=+(store('lm_best')||0);$('#bestTxt').textContent=b?`أفضل نتيجة لك: ${ar(b)}`:'';show('menu')};
+$('#bSound').onclick=()=>{S.sound=!S.sound;store('lm_sound',S.sound?'1':'0');if(!S.sound)try{speechSynthesis.cancel()}catch(e){};drawSound()};
+drawSound();
+</script>
+</body>
+</html>
