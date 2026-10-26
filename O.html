@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>وصل</title>
+<style>
+:root{--accent:#1F5FBF;--ink:#1B1F24;--muted:#6A6F77;--line:#E2DDD2;--line2:#EFEAE0;--paper:#F4F1EA;--card:#FFFFFF;--teal:#0F5F58;--rust:#B4401A;--red:#D62828;
+--font:-apple-system,BlinkMacSystemFont,'SF Pro Arabic','Helvetica Neue',Roboto,'Noto Kufi Arabic',Cairo,'Noto Sans Arabic',sans-serif}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:#DCD7CB;font-family:var(--font);color:var(--ink);display:flex;align-items:center;justify-content:center;min-height:100vh}
+#app{width:100%;max-width:390px;height:100vh;display:flex;flex-direction:column;background:var(--paper);overflow:hidden}
+@media (min-width:500px){#app{height:844px;border-radius:28px;box-shadow:0 10px 40px rgba(0,0,0,.2)}}
+button{font-family:inherit;cursor:pointer;border:none;background:transparent;color:inherit;padding:0}
+input{font-family:inherit}
+.hdr{flex:none;display:flex;align-items:center;gap:14px;padding:14px 18px 16px;background:var(--accent);color:#fff}
+.av-me{position:relative;width:56px;height:56px;border-radius:25%;border:2px solid #fff;display:flex;align-items:center;justify-content:center}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
+.hdr-name{font-size:19px;font-weight:700}
+.hdr-status{display:flex;align-items:center;gap:6px;font-size:13px;opacity:.95}
+main{flex:1;min-height:0;overflow-y:auto;position:relative}
+.sticky-top{position:sticky;top:0;z-index:2;padding:14px 20px;background:#fff;border-bottom:1px solid var(--line);font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px}
+.sec{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:10px 16px;border-bottom:1px solid #DAD5C9;background:linear-gradient(#fff,#E9E5DA);font-size:16px;font-weight:700;text-align:right}
+.glyph{flex:none;width:26px;height:26px;border-radius:50%;background:#1B1F24;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1}
+.opt{display:flex;align-items:center;gap:14px;width:100%;min-height:52px;padding:10px 16px;border-bottom:1px solid var(--line);background:#fff;color:#4A4F57;font-size:16px;text-align:right}
+.row{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:10px 16px;border-bottom:1px solid var(--line);background:#fff;color:var(--ink);text-align:right}
+.row.static{cursor:default}
+.av{position:relative;flex:none;width:44px;height:44px;border-radius:25%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+.pdot{position:absolute;bottom:0;left:0;width:12px;height:12px;border-radius:50%;border:2px solid #fff}
+.grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.grow small,.muted{font-size:13px;color:var(--muted)}
+.ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.form{display:flex;gap:8px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line);align-items:center}
+.input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:15px;outline:none;background:var(--paper);color:var(--ink)}
+.btn{flex:none;border:none;border-radius:12px;background:var(--accent);color:#fff;font-weight:600;font-size:14px;padding:0 16px;min-height:44px}
+.btn.ghost{background:transparent;color:#4A4F57;border:1px solid var(--line);font-size:13px;min-height:40px;border-radius:10px;padding:0 10px}
+.note{padding:10px 16px;font-size:13px;color:var(--teal);font-weight:600;background:#fff;border-bottom:1px solid var(--line)}
+.chip{flex:none;border-radius:999px;border:2px solid var(--line);background:#fff;color:var(--ink);font-size:13px;font-weight:600;padding:0 14px;min-height:40px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;background:var(--paper);border-bottom:1px solid var(--line)}
+.pill{align-self:flex-start;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:#4A4F57;font-size:12px;padding:0 12px;min-height:36px}
+.tagbox{display:flex;flex-direction:column;gap:8px;padding:0 16px 10px;background:#fff;border-bottom:1px solid var(--line)}
+.tagbox .chips-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.muted-line{padding:14px 16px;font-size:14px;color:var(--muted);background:#fff}
+.sq{flex:none;width:40px;height:40px;border-radius:25%;}
+.bluedot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--red)}
+.blink{animation:beacon 1.5s linear infinite}
+@keyframes beacon{0%{opacity:.05;box-shadow:none}4%{opacity:1;box-shadow:0 0 8px 3px rgba(214,40,40,.55)}8%{opacity:.05;box-shadow:none}100%{opacity:.05;box-shadow:none}}
+.mark{font-size:11px;font-weight:700;line-height:1.1;white-space:pre-line;text-align:center}
+.badge-red{min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.tabsbar{display:flex;gap:8px;overflow-x:auto}
+.ph{font-family:var(--font)}
+.post{display:flex;gap:12px;padding:18px 20px;background:#fff;border-bottom:1px solid var(--line2);cursor:pointer}
+.post .pbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.post .phead{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.post .phead b{font-size:15px}
+.ptext{font-family:var(--font);font-size:16px;line-height:1.6;color:#0F1419}
+.tagbtn{border:none;background:transparent;padding:0;font:inherit;color:var(--accent);font-weight:600;cursor:pointer}
+.pact{display:flex;justify-content:space-between;gap:4px;margin-inline-start:-10px;max-width:380px}
+.pact button{display:flex;align-items:center;gap:6px;font-size:13px;padding:8px 10px;min-height:44px;color:var(--muted)}
+.pact .on-rust{color:var(--rust)}
+.pact .on-green{color:#2E8B57}
+.pact .reply{color:var(--teal);font-weight:600}
+.composer{display:flex;gap:12px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--line)}
+.composer .cbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.composer input{border:none;outline:none;font-size:18px;padding:8px 0;background:transparent;color:var(--ink)}
+.composer .cfoot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--line2)}
+.pubbtn{border:none;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:14px;padding:0 22px;min-height:40px}
+.trends{background:#fff;border-bottom:1px solid var(--line)}
+.trends h4{margin:0;padding:14px 16px 6px;font-weight:800;font-size:13px;letter-spacing:.3px;color:var(--muted)}
+.trend-row{display:flex;gap:10px;overflow-x:auto;padding:4px 16px 14px}
+.trend{display:flex;flex-direction:column;gap:4px;flex:none;min-width:150px;padding:12px 16px;border:1px solid var(--line);border-radius:16px;background:#fff;text-align:right;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.trend .lbl{font-weight:700;font-size:16px;color:var(--accent)}
+.trend .rk{font-size:12px;color:var(--muted)}
+.banner{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.banner span{font-weight:700;color:var(--accent)}
+.banner button{color:var(--accent);font-weight:600;font-size:14px;min-height:44px}
+.thread-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line)}
+.thread-top b{font-weight:800;font-size:18px}
+.back{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.replyrow{display:flex;flex-direction:column;gap:4px;padding:14px 20px;border-bottom:1px solid var(--line2)}
+.replyrow .rw{font-size:13px;font-weight:700}
+.replyrow .rw span{font-weight:400;color:var(--muted)}
+.replyrow .rt{font-family:var(--font);font-size:16px;line-height:1.6;color:#0F1419}
+.thread-compose{position:sticky;bottom:0;margin-top:auto;display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid var(--line)}
+.thread-compose input{flex:1;min-width:0;border:1px solid var(--line);border-radius:999px;padding:12px 16px;font-size:15px;outline:none;background:var(--paper);color:var(--ink)}
+.thread-compose button{flex:none;border:none;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;padding:0 18px;min-height:44px}
+.chatview{display:flex;flex-direction:column;min-height:100%}
+.chat-top{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:#fff}
+.bubbles{flex:1;display:flex;flex-direction:column;gap:8px;padding:16px}
+.bwrap{max-width:78%;display:flex;flex-direction:column;gap:2px}
+.bubble{padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.6;border:1px solid}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;padding:8px 12px;background:#fff;border-top:1px solid var(--line)}
+.emoji-grid button{font-size:24px;min-height:44px;padding:0}
+.chat-compose{display:flex;gap:8px;align-items:center;padding:10px 12px;background:#fff;border-top:1px solid var(--line)}
+.chat-compose input{flex:1;min-width:0;border:1px solid var(--line);border-radius:999px;padding:12px 16px;font-size:15px;outline:none;background:var(--paper);color:var(--ink)}
+.round{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800}
+.nudge-btn{border:2px solid var(--accent);background:#fff;color:var(--accent);font-size:14px}
+.send-btn{background:var(--accent);color:#fff;border:none}
+@keyframes nudgeA{0%,100%{transform:translate(0,0)}10%{transform:translate(-10px,-4px) rotate(-1deg)}20%{transform:translate(10px,4px) rotate(1deg)}30%{transform:translate(-10px,2px)}40%{transform:translate(10px,-2px)}50%{transform:translate(-8px,4px)}60%{transform:translate(8px,-4px)}70%{transform:translate(-6px,2px)}80%{transform:translate(6px,-2px)}90%{transform:translate(-2px,1px)}}
+.nudge-a{animation:nudgeA .6s linear}
+.nudge-b{animation:nudgeA .6s linear reverse}
+@media (prefers-reduced-motion:reduce){.nudge-a,.nudge-b,.blink{animation:none}}
+.me-cover{height:120px;width:calc(100% + 40px);margin:0 -20px;background:linear-gradient(135deg,var(--accent),#0F5F58)}
+.me-head{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 20px 20px;background:#fff;border-bottom:1px solid var(--line)}
+.me-avatar{position:relative;width:96px;height:96px;border-radius:25%;overflow:hidden;border:4px solid #fff;margin-top:-48px;background:#CFE3DF}
+.me-avatar svg{position:absolute;inset:0;width:100%;height:100%}
+.me-stats{display:flex;justify-content:space-around;width:100%;max-width:340px;margin-top:12px;padding:12px 0;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.me-stats div{display:flex;flex-direction:column;align-items:center;gap:2px}
+.me-stats span.n{font-size:18px;font-weight:700}
+.me-stats span.l{font-size:13px;color:var(--muted)}
+.me-body{display:flex;flex-direction:column;gap:20px;padding:24px 20px}
+.mytabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid var(--line)}
+.mytabs button{font-size:14px;font-weight:700;padding:12px 0;border-bottom:3px solid transparent;color:var(--muted)}
+.mytabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+.mylist{display:flex;flex-direction:column;gap:6px;padding:16px 20px;margin:0 -20px;background:#fff;border-bottom:1px solid var(--line2)}
+.mylist .meta{font-size:12px;color:var(--muted)}
+.mylist .txt{font-family:var(--font);font-size:16px;line-height:1.6;color:#0F1419}
+nav.tabs{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-top:1px solid var(--line);padding:6px 4px 14px}
+nav.tabs button{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;min-height:52px;color:var(--muted);font-weight:500}
+nav.tabs button.on{color:var(--accent);font-weight:700}
+nav.tabs .b{position:absolute;top:4px;left:50%;margin-left:6px;min-width:18px;height:18px;border-radius:9px;background:var(--rust);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
+.picks{display:flex;flex-direction:column;background:#fff;border-bottom:1px solid var(--line)}
+.pick{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 16px;background:transparent;color:var(--ink);text-align:right}
+.box{flex:none;width:24px;height:24px;border-radius:6px;border:2px solid #B9B2A3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.gicon{flex:none;width:44px;height:44px;border-radius:12px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+.reqrow{display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.pin{font-family:ui-monospace,monospace;font-size:12px;color:var(--muted)}
+.pending{display:flex;align-items:center;gap:12px;min-height:60px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.pending .wait{flex:none;font-size:12px;font-weight:600;color:var(--rust);white-space:nowrap}
+.sec-count{font-weight:700}
+</style>
+</head>
+<body>
+<div id="app" dir="rtl"></div>
+
+<script>
+const ACCENT = '#1F5FBF';
+const PRES_DOT = { available: '#2E8B57', busy: '#B4401A', away: '#C9A227', hidden: '#8A8F97' };
+const STATUS_TEXT = { available: 'متصل الآن', busy: 'مشغول', away: 'بعيد', hidden: 'مخفي' };
+const MARK_TEXT = { delivered: 'D', read: 'R\n✓' };
+const MARK_COLOR = { delivered: '#6A6F77', read: '#0F5F58' };
+const AVATARS = [
+  { bg: '#CFE3DF', body: '#3B4A6B', hair: '#2B2118', sun: '#F4E9C8' },
+  { bg: '#F4E1D2', body: '#7A4FA0', hair: '#1E1E1E', sun: '#FBE7C6' },
+  { bg: '#DCE7F7', body: '#1F5FBF', hair: '#4A3121', sun: '#FFFFFF' },
+  { bg: '#E4F0D9', body: '#5B6B2F', hair: '#2B2118', sun: '#F7F0C9' }
+];
+const EMOJIS = ['😀', '😂', '😍', '😎', '🤔', '😢', '😡', '👍', '👏', '🙏', '❤️', '🔥', '🎉', '😴', '🤝', '🌹'];
+const ICON = {
+  home: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
+  feed: 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18',
+  chats: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z',
+  me: 'M20 21v-1a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v1M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'
+};
+const HEART = 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z';
+
+function svg(inner, size = 18, extra = '') {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${inner}</svg>`;
+}
+function esc(v) {
+  return String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function splitText(text) {
+  return String(text).split(/(#[\p{L}\p{N}_]+)/u).filter((x) => x !== '');
+}
+function trendingOf(posts) {
+  const counts = {};
+  posts.forEach((p) => {
+    const tags = {};
+    splitText(p.text).forEach((x) => { if (x.charAt(0) === '#' && x.length > 1) tags[x.slice(1)] = true; });
+    Object.keys(tags).forEach((k) => { counts[k] = (counts[k] || 0) + 1; });
+  });
+  return Object.keys(counts).map((k) => ({ tag: k, count: counts[k] })).sort((a, b) => b.count - a.count).slice(0, 10);
+}
+function artOf(seed) {
+  let h = 7;
+  const str = String(seed);
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  const rnd = () => { h = (h * 1103515245 + 12345) >>> 0; return h / 4294967296; };
+  const pal = ['#7A4FA0', '#B4401A', '#2F6F9F', '#5B6B2F', '#9F2F5B', '#3B3FA8', '#C9A227', '#1E6B41', '#D62828', '#0F5F58'];
+  const pick = () => pal[Math.floor(rnd() * pal.length)];
+  const layers = [];
+  for (let i = 0; i < 3; i++) {
+    const x = Math.round(rnd() * 100);
+    const y = Math.round(rnd() * 100);
+    const r = 15 + Math.round(rnd() * 25);
+    layers.push('radial-gradient(circle at ' + x + '% ' + y + '%, ' + pick() + ' 0 ' + r + '%, transparent ' + (r + 1) + '%)');
+  }
+  return 'linear-gradient(' + Math.round(rnd() * 360) + 'deg, ' + pick() + ', ' + pick() + '), ' + layers.join(', ');
+}
+function makeContacts() {
+  const first = ['محمد', 'عبدالله', 'خالد', 'سلطان', 'فهد', 'ناصر', 'يوسف', 'عمر', 'أحمد', 'تركي'];
+  const family = ['الغامدي', 'الزهراني', 'الحربي', 'العتيبي', 'القحطاني', 'الشهري', 'المالكي', 'البلوي', 'السلمي', 'الأحمدي'];
+  const tints = ['#7A4FA0', '#B4401A', '#2F6F9F', '#5B6B2F', '#9F2F5B', '#3B3FA8'];
+  const presence = ['available', 'busy', 'away', 'hidden'];
+  const out = [];
+  for (let i = 0; i < 97; i++) {
+    const p = presence[i % 4];
+    out.push({
+      id: 100 + i,
+      name: first[i % 10] + ' ' + family[Math.floor(i / 10) % 10],
+      initial: first[i % 10].charAt(0),
+      tint: tints[i % 6],
+      presence: p,
+      status: STATUS_TEXT[p] === 'متصل الآن' ? 'متاح' : STATUS_TEXT[p],
+      time: 'أمس',
+      hasChat: false,
+      msgs: [{ me: false, text: 'تمام، نتواصل لاحقاً' }]
+    });
+  }
+  return out;
+}
+
+let S = {
+  tab: 'home', chatId: null, threadId: null, typing: false, nudgeCount: 0,
+  draftPost: '', draftMsg: '', replyDraft: '', pinInput: '', pinNote: '', groupName: '', groupNote: '',
+  broadcastOpen: false, broadcastDraft: '', broadcastNote: '', broadcastIds: [],
+  labels: [], activeLabel: null, recentOpen: false, emojiOpen: false, pendingOpen: false, activeTag: null,
+  labelOpen: false, labelDraft: '', labelNote: '', tagFor: null,
+  contactsOpen: false, groupsOpen: false, inviteOpen: false, groupOpen: false,
+  status: 'available', myTab: 'posts',
+  pendingInvites: [
+    { id: 'p1', name: 'منصور الشمري', pin: 'C4B1E09A' },
+    { id: 'p2', name: 'لمى العنزي', pin: '0D7F3E21' },
+    { id: 'p3', name: 'عبدالرحمن الدوسري', pin: 'A93C5B70' }
+  ],
+  posts: [
+    { id: 1, name: 'سارة', handle: '@sara_k', time: 'د5', initial: 'س', tint: '#7A4FA0', text: 'أول يوم في النادي الجديد، الأجواء ممتازة والمدرب صبور جدًا. #رياضة #بداية_جديدة', likes: 24, shares: 3, liked: false, shared: false, chat: 1, replies: [{ name: 'فهد', handle: '@fahad', time: 'د5', text: 'مبروك يا سارة! أتمنى لك تجربة ممتعة.' }, { name: 'ريم', handle: '@reem', time: 'د2', text: 'المدرب فعلاً ممتاز، أنصحك بالحصص الصباحية.' }] },
+    { id: 2, name: 'فهد', handle: '@fahad', time: 'د18', initial: 'ف', tint: '#B4401A', text: 'من يعرف مطعم مندي هادئ في الطائف يناسب العائلات؟ #الطائف #مطاعم', likes: 9, shares: 1, liked: false, shared: false, chat: 2, replies: [{ name: 'سارة', handle: '@sara_k', time: 'د9', text: 'جرّب مطعم الشرفية قرب الكورنيش، هادئ جداً.' }, { name: 'محمد', handle: '@m_dev', time: 'د4', text: 'جربنا مطعماً على طريق الهدا والعائلات مرتاحة هناك.' }, { name: 'تركي', handle: '@turki', time: 'د1', text: 'شكراً على السؤال، سأجرب أحدهما.' }] },
+    { id: 3, name: 'نورة', handle: '@noura.dev', time: 'س1', initial: 'ن', tint: '#2F6F9F', text: 'خلصت أول تطبيق لي اليوم. التعب يستاهل. #برمجة', likes: 61, shares: 12, liked: true, shared: false, chat: 3, replies: [{ name: 'سارة', handle: '@sara_k', time: 'س1', text: 'مبروك! التعب يستاهل فعلاً.' }, { name: 'خالد', handle: '@khaled', time: 'س1', text: 'أي تطبيق؟ حاب أشوفه.' }] },
+    { id: 4, name: 'محمد', handle: '@m_dev', time: 'س3', initial: 'م', tint: '#B4401A', text: 'جربت نسخة جديدة من المطعم في الطائف وطعمها يستاهل. #الطائف #مطاعم', likes: 14, shares: 2, liked: false, shared: false, chat: null, replies: [{ name: 'نورة', handle: '@noura.dev', time: 'س2', text: 'الصور تبين الطبق شكله حلو!' }, { name: 'فهد', handle: '@fahad', time: 'س2', text: 'وين المطعم بالضبط؟' }] },
+    { id: 5, name: 'ريم', handle: '@reem', time: 'س4', initial: 'ر', tint: '#9F2F5B', text: 'أتعلم البرمجة من الصفر، وكل يوم أكتشف شيئاً جديداً. #برمجة #بداية_جديدة', likes: 31, shares: 4, liked: false, shared: false, chat: null, replies: [{ name: 'فهد', handle: '@fahad', time: 'س3', text: 'البداية الصعبة تعلّمك الكثير، استمر.' }, { name: 'نورة', handle: '@noura.dev', time: 'س3', text: 'كل يوم خطوة، وإنتي بتوصلين.' }, { name: 'محمد', handle: '@m_dev', time: 'س2', text: 'أنصحك بمشروع صغير كل أسبوع.' }] },
+    { id: 6, name: 'تركي', handle: '@turki', time: 'س5', initial: 'ت', tint: '#2F6F9F', text: 'مطر الطائف اليوم جميل جداً. #الطائف #طقس', likes: 8, shares: 1, liked: false, shared: false, chat: null, replies: [{ name: 'ريم', handle: '@reem', time: 'س4', text: 'المطر في الطائف له سحر خاص.' }, { name: 'سارة', handle: '@sara_k', time: 'س3', text: 'أحب الأجواء بعد المطر.' }] },
+    { id: 7, name: '[اسمك]', handle: '@[معرّفك]', time: 'أمس', initial: 'ع', tint: ACCENT, text: 'منشور تجريبي من حسابي. #تجربة', likes: 12, shares: 1, liked: false, shared: false, chat: null, mine: true, replies: [{ name: 'سارة', handle: '@sara_k', time: 'أمس', text: 'منشور جميل!' }] }
+  ],
+  chats: [
+    { id: 1, name: 'سارة', initial: 'س', tint: '#7A4FA0', presence: 'available', status: 'في النادي', time: '12:20', unread: 1, label: null, msgs: [
+      { me: false, text: 'وصلتني صور الأمس؟' },
+      { me: true, text: 'إيه وصلت، روعة', mark: 'read' }
+    ] },
+    { id: 2, name: 'فهد', initial: 'ف', tint: '#B4401A', presence: 'busy', status: 'مشغول — اجتماع', time: '11:02', label: null, msgs: [
+      { me: true, text: 'نتقابل بعد العصر؟', mark: 'delivered' }
+    ] },
+    { id: 3, name: 'نورة', initial: 'ن', tint: '#2F6F9F', presence: 'available', status: 'أبرمج', time: 'أمس', label: null, msgs: [
+      { me: false, text: 'شكرًا على الملاحظات' }
+    ] }
+  ].concat(makeContacts()),
+  groups: [{ id: 'g1', name: 'العائلة', members: 4, tint: '#5B6B2F' }],
+  requests: [
+    { id: 'r1', name: 'خالد', initial: 'خ', tint: '#5B6B2F', pin: '2C91E7AB' },
+    { id: 'r2', name: 'ريم', initial: 'ر', tint: '#9F2F5B', pin: '6B04F1D3' }
+  ]
+};
+
+/* ---------- state helpers ---------- */
+function set(patch) {
+  Object.assign(S, typeof patch === 'function' ? patch(S) : patch);
+  render();
+}
+function updateChat(id, fn) {
+  S.chats = S.chats.map((c) => (c.id === id ? fn(c) : c));
+}
+function go(tab) { set({ tab: tab, chatId: null, threadId: null }); }
+
+function openChat(id) {
+  S.chats = S.chats.map((c) => (c.id === id ? { ...c, unread: 0 } : c));
+  set({ tab: 'chats', chatId: id, threadId: null });
+}
+
+function send() {
+  const text = (S.draftMsg || '').trim();
+  const id = S.chatId;
+  if (!text || !id) return;
+  updateChat(id, (c) => ({ ...c, hasChat: true, time: 'الآن', msgs: c.msgs.concat([{ me: true, text: text, mark: 'delivered' }]) }));
+  S.draftMsg = '';
+  render();
+  setTimeout(() => {
+    updateChat(id, (c) => ({ ...c, msgs: c.msgs.map((m) => (m.me ? { ...m, mark: 'read' } : m)) }));
+    if (S.chatId === id) set({ typing: true });
+  }, 1200);
+  setTimeout(() => {
+    S.typing = false;
+    updateChat(id, (c) => ({ ...c, unread: S.chatId === id ? 0 : (c.unread || 0) + 1, msgs: c.msgs.concat([{ me: false, text: 'تمام، وصلتني' }]) }));
+    render();
+  }, 2800);
+}
+
+function nudge() {
+  const id = S.chatId;
+  if (!id) return;
+  S.nudgeCount += 1;
+  updateChat(id, (c) => ({ ...c, time: 'الآن', msgs: c.msgs.concat([{ me: true, text: '!!! تنبيه', mark: 'delivered' }]) }));
+  render();
+  setTimeout(() => {
+    updateChat(id, (c) => ({ ...c, msgs: c.msgs.map((m) => (m.me ? { ...m, mark: 'read' } : m)) }));
+    render();
+  }, 1200);
+}
+
+function toggleRecipient(id) {
+  set((s) => ({
+    broadcastIds: s.broadcastIds.includes(id) ? s.broadcastIds.filter((x) => x !== id) : s.broadcastIds.concat([id]),
+    broadcastNote: ''
+  }));
+}
+function selectAll() {
+  set((s) => ({ broadcastIds: s.broadcastIds.length === s.chats.length ? [] : s.chats.map((c) => c.id) }));
+}
+function broadcast() {
+  const text = (S.broadcastDraft || '').trim();
+  if (!text) { set({ broadcastNote: 'اكتب نص الرسالة أولاً' }); return; }
+  const ids = S.broadcastIds;
+  if (ids.length === 0) { set({ broadcastNote: 'اختر شخصاً واحداً على الأقل' }); return; }
+  const count = ids.length;
+  S.chats = S.chats.map((c) => (ids.includes(c.id) ? { ...c, hasChat: true, time: 'الآن', msgs: c.msgs.concat([{ me: true, text: text, mark: 'delivered' }]) } : c));
+  set({ broadcastIds: [], broadcastDraft: '', broadcastOpen: false, broadcastNote: 'أُرسلت الرسالة إلى ' + count + ' جهات اتصال' });
+  setTimeout(() => {
+    S.chats = S.chats.map((c) => ({ ...c, msgs: c.msgs.map((m) => (m.me && m.text === text ? { ...m, mark: 'read' } : m)) }));
+    render();
+  }, 1500);
+}
+
+function createLabel() {
+  const name = (S.labelDraft || '').trim();
+  if (!name) { set({ labelNote: 'اكتب اسم التصنيف أولاً' }); return; }
+  const id = 'l' + Date.now();
+  set((s) => ({ labels: s.labels.concat([{ id: id, name: name }]), labelDraft: '', labelOpen: false, activeLabel: id, labelNote: 'تم إنشاء تصنيف ' + name }));
+}
+function assignLabel(chatId, labelId) {
+  S.chats = S.chats.map((c) => (c.id === chatId ? { ...c, label: c.label === labelId ? null : labelId } : c));
+  set({ tagFor: null });
+}
+function accept(id) {
+  const r = S.requests.find((x) => x.id === id);
+  if (!r) return;
+  S.requests = S.requests.filter((x) => x.id !== id);
+  S.chats = [{ id: Date.now(), name: r.name, initial: r.initial, tint: r.tint, presence: 'available', status: 'متاح', time: 'الآن', msgs: [{ me: false, text: 'أهلًا! شكرًا على القبول' }] }].concat(S.chats);
+  render();
+}
+function decline(id) {
+  S.requests = S.requests.filter((x) => x.id !== id);
+  render();
+}
+function sendRequest() {
+  const pin = (S.pinInput || '').trim();
+  if (pin.length === 8) {
+    const inv = { id: 'p' + Date.now(), name: 'مستخدم ' + pin.slice(0, 4), pin: pin };
+    set((s) => ({ pendingInvites: [inv].concat(s.pendingInvites), pinInput: '', pinNote: 'تم إرسال الطلب إلى ' + pin + ' — بانتظار القبول' }));
+  } else {
+    set({ pinInput: '', pinNote: 'الرمز يتكوّن من 8 خانات' });
+  }
+}
+function cancelPending(id) {
+  set((s) => ({ pendingInvites: s.pendingInvites.filter((p) => p.id !== id) }));
+}
+function createGroup() {
+  const name = (S.groupName || '').trim();
+  if (!name) { set({ groupNote: 'اكتب اسم المجموعة أولاً' }); return; }
+  const g = { id: 'g' + Date.now(), name: name, members: 1, tint: ACCENT };
+  set((s) => ({ groups: s.groups.concat([g]), groupName: '', groupOpen: false, groupNote: 'تم إنشاء مجموعة ' + name }));
+}
+
+function togglePost(id, key, countKey) {
+  S.posts = S.posts.map((p) => (p.id === id ? { ...p, [key]: !p[key], [countKey]: p[countKey] + (p[key] ? -1 : 1) } : p));
+  render();
+}
+function publish() {
+  const text = (S.draftPost || '').trim();
+  if (!text) return;
+  const post = { id: Date.now(), name: '[اسمك]', handle: '@[معرّفك]', time: 'الآن', initial: 'ع', tint: ACCENT, text: text, likes: 0, shares: 0, liked: false, shared: false, chat: null, mine: true, replies: [] };
+  set((s) => ({ posts: [post].concat(s.posts), draftPost: '' }));
+}
+function addReply(id) {
+  const text = (S.replyDraft || '').trim();
+  if (!text) return;
+  const reply = { name: '[اسمك]', handle: '@[معرّفك]', time: 'الآن', text: text, mine: true };
+  S.posts = S.posts.map((p) => (p.id === id ? { ...p, replies: (p.replies || []).concat([reply]) } : p));
+  set({ replyDraft: '' });
+}
+function openThread(id) { set({ threadId: id, replyDraft: '' }); }
+function closeThread() { set({ threadId: null, replyDraft: '' }); }
+function setTag(tag) { set({ tab: 'feed', chatId: null, threadId: null, activeTag: tag }); }
+function myListOf() {
+  const t = S.myTab || 'posts';
+  if (t === 'posts') return S.posts.filter((p) => p.mine);
+  if (t === 'retweets') return S.posts.filter((p) => p.shared);
+  if (t === 'likes') return S.posts.filter((p) => p.liked);
+  if (t === 'replies') return S.posts.filter((p) => (p.replies || []).some((r) => r.mine));
+  return [];
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const a = el.dataset.act;
+  const id = el.dataset.id;
+  const numId = id && !isNaN(id) ? Number(id) : id;
+  switch (a) {
+    case 'go': go(el.dataset.tab); break;
+    case 'toggle': set((s) => ({ [el.dataset.key]: !s[el.dataset.key] })); break;
+    case 'openChat': openChat(numId); break;
+    case 'closeChat': set({ chatId: null, typing: false }); break;
+    case 'send': send(); break;
+    case 'nudge': nudge(); break;
+    case 'emoji': set((s) => ({ draftMsg: (s.draftMsg || '') + el.dataset.ch })); break;
+    case 'toggleTag': set((s) => ({ tagFor: s.tagFor === numId ? null : numId })); break;
+    case 'assignLabel': assignLabel(numId, el.dataset.label); break;
+    case 'chipLabel': set({ activeLabel: el.dataset.key === '' ? null : el.dataset.key }); break;
+    case 'createLabel': createLabel(); break;
+    case 'selectAll': selectAll(); break;
+    case 'recipient': toggleRecipient(numId); break;
+    case 'sendBroadcast': broadcast(); break;
+    case 'sendRequest': sendRequest(); break;
+    case 'cancelPending': cancelPending(id); break;
+    case 'accept': accept(id); break;
+    case 'decline': decline(id); break;
+    case 'createGroup': createGroup(); break;
+    case 'scan': set({ groupNote: 'مسح الرمز يحتاج صلاحية الكاميرا، وسيتوفر قريباً' }); break;
+    case 'publish': publish(); break;
+    case 'like': togglePost(numId, 'liked', 'likes'); break;
+    case 'share': togglePost(numId, 'shared', 'shares'); break;
+    case 'openThread': openThread(numId); break;
+    case 'closeThread': closeThread(); break;
+    case 'sendReply': addReply(S.threadId); break;
+    case 'setMyTab': set({ myTab: el.dataset.k }); break;
+    case 'setTag': setTag(el.dataset.tag); break;
+    case 'clearTag': set({ activeTag: null }); break;
+    default: break;
+  }
+});
+document.addEventListener('input', (e) => {
+  const k = e.target.dataset.field;
+  if (!k) return;
+  const v = e.target.value;
+  if (k === 'draftPost') S.draftPost = v.slice(0, 280);
+  else if (k === 'draftMsg') S.draftMsg = v;
+  else if (k === 'replyDraft') S.replyDraft = v.slice(0, 280);
+  else if (k === 'labelDraft') S.labelDraft = v;
+  else if (k === 'broadcastDraft') S.broadcastDraft = v;
+  else if (k === 'groupName') S.groupName = v;
+  else if (k === 'pinInput') { S.pinInput = v.toUpperCase(); }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.dataset && e.target.dataset.enter) {
+    const act = e.target.dataset.enter;
+    if (act === 'publish') publish();
+    if (act === 'reply') addReply(S.threadId);
+    if (act === 'sendMsg') send();
+    if (act === 'createLabel') createLabel();
+    if (act === 'createGroup') createGroup();
+    if (act === 'sendRequest') sendRequest();
+    if (act === 'broadcast') broadcast();
+  }
+});
+
+/* ---------- views ---------- */
+function header() {
+  return `<header class="hdr">
+    <button data-act="go" data-tab="me" aria-label="حسابي" style="min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center">
+      <div class="av-me" style="background:${artOf('me')}"><span class="dot" style="position:absolute;bottom:0;left:0;width:14px;height:14px;border:2px solid ${ACCENT};background:${PRES_DOT[S.status]}"></span></div>
+    </button>
+    <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+      <div class="hdr-name">[اسمك]</div>
+      <div class="hdr-status"><span class="dot" style="width:8px;height:8px;background:${PRES_DOT[S.status]}"></span>${STATUS_TEXT[S.status]}</div>
+    </div>
+  </header>`;
+}
+
+function chatLast(c) {
+  const last = c.msgs[c.msgs.length - 1] || { text: '' };
+  return {
+    last: (last.me ? 'أنت: ' : '') + last.text,
+    mark: last.me ? MARK_TEXT[last.mark] : '',
+    markColor: last.me ? MARK_COLOR[last.mark] : '#6A6F77'
+  };
+}
+
+function homeView() {
+  const chats = S.chats;
+  const homeChats = S.activeLabel === null ? chats : chats.filter((c) => c.label === S.activeLabel);
+  const recent = chats.filter((c) => c.hasChat !== false);
+  const recentHasUnread = chats.some((c) => (c.unread || 0) > 0);
+  const accent = ACCENT;
+  const glyph = (open) => (open ? '−' : '+');
+  const labelChips = [{ key: '', label: 'الكل (' + chats.length + ')' }]
+    .concat(S.labels.map((l) => ({ key: l.id, label: l.name + ' (' + chats.filter((c) => c.label === l.id).length + ')' })));
+
+  let html = '';
+  html += `<button class="sec" data-act="toggle" data-key="contactsOpen"><span class="glyph">${glyph(S.contactsOpen)}</span>جهات الاتصال (${chats.length})</button>`;
+  if (S.contactsOpen) {
+    html += `<div class="chips">${labelChips.map((x) => {
+      const on = (S.activeLabel === null && x.key === '') || S.activeLabel === x.key;
+      return `<button class="chip" data-act="chipLabel" data-key="${esc(x.key)}" style="border-color:${on ? accent : '#E2DDD2'};background:${on ? accent : '#fff'};color:${on ? '#fff' : '#1B1F24'}">${esc(x.label)}</button>`;
+    }).join('')}</div>`;
+    html += `<button class="opt" data-act="toggle" data-key="labelOpen">${svg('<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 12V3h9l8.6 8.6a2 2 0 0 1 0 2.8z"></path><circle cx="7.5" cy="7.5" r="1.5"></circle>', 24, `stroke="${accent}"`)} إنشاء تصنيف جديد</button>`;
+    if (S.labelOpen) {
+      html += `<div class="form"><input class="input" data-field="labelDraft" data-enter="createLabel" value="${esc(S.labelDraft)}" placeholder="مثال: أصدقاء العمل"><button class="btn" data-act="createLabel" style="background:${accent}">أنشئ</button></div>`;
+    }
+    if (S.labelNote) html += `<div class="note">${esc(S.labelNote)}</div>`;
+    html += `<button class="opt" data-act="toggle" data-key="inviteOpen">${svg('<circle cx="10" cy="8" r="4"></circle><path d="M2 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"></path><path d="M19 8v6M22 11h-6"></path>', 24, `stroke="${accent}"`)} أضف شخصاً برمزه</button>`;
+    html += `<button class="opt" data-act="toggle" data-key="broadcastOpen">${svg('<path d="M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path>', 24, `stroke="${accent}"`)} رسالة جماعية لجميع المضافين</button>`;
+    if (S.broadcastOpen) {
+      const n = S.broadcastIds.length;
+      html += `<div class="picks"><div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px 0"><span class="muted">تم اختيار ${n} من ${chats.length}</span><button data-act="selectAll" style="color:${accent};font-size:13px;font-weight:600;min-height:44px;padding:0 4px">${n === chats.length && chats.length ? 'إلغاء تحديد الكل' : 'تحديد الكل'}</button></div>`;
+      html += chats.map((c) => {
+        const on = S.broadcastIds.includes(c.id);
+        return `<button class="pick" data-act="recipient" data-id="${c.id}"><span class="box" style="background:${on ? accent : '#fff'};border-color:${on ? accent : '#B9B2A3'};color:#fff">${on ? '✓' : ''}</span><span class="av" style="background:${artOf(c.id)};width:36px;height:36px;border-radius:25%;flex:none"></span><span style="font-size:15px;font-weight:600">${esc(c.name)}</span></button>`;
+      }).join('') + `</div>`;
+      html += `<div class="form"><input class="input" data-field="broadcastDraft" data-enter="broadcast" value="${esc(S.broadcastDraft)}" placeholder="اكتب رسالة لكل المضافين"><button class="btn" data-act="sendBroadcast" style="background:${accent}">أرسل (${n})</button></div>`;
+    }
+    if (S.broadcastNote) html += `<div class="note">${esc(S.broadcastNote)}</div>`;
+    if (S.inviteOpen) {
+      html += `<div class="form" style="flex-direction:column;align-items:stretch"><div style="display:flex;gap:8px"><input class="input" data-field="pinInput" data-enter="sendRequest" value="${esc(S.pinInput)}" maxlength="8" placeholder="مثال: 7F3A21C9" style="font-family:ui-monospace,monospace;letter-spacing:1px;direction:ltr;text-align:left"><button class="btn" data-act="sendRequest" style="background:${accent}">أرسل</button></div>${S.pinNote ? `<div style="font-size:13px;color:var(--teal);font-weight:600">${esc(S.pinNote)}</div>` : ''}</div>`;
+    }
+    if (S.requests.length) {
+      html += `<div style="padding:8px 16px;font-size:13px;color:var(--muted);background:var(--paper)">طلبات بانتظارك (${S.requests.length})</div>`;
+      html += S.requests.map((r) => `<div class="reqrow"><div class="sq" style="background:${artOf(r.id)}"></div><div class="grow"><span style="font-weight:700;font-size:15px">${esc(r.name)}</span><span class="pin">${esc(r.pin)}</span></div><button class="btn ghost" data-act="decline" data-id="${esc(r.id)}">تجاهل</button><button class="btn" data-act="accept" data-id="${esc(r.id)}" style="background:${accent};font-size:13px;min-height:40px;padding:0 14px;border-radius:10px">قبول</button></div>`).join('');
+    }
+    html += homeChats.map((c) => {
+      const tagText = 'تصنيف: ' + ((S.labels.find((l) => l.id === c.label) || { name: 'بدون تصنيف' }).name) + ' ▾';
+      const chips = S.labels.map((l) => {
+        const on = c.label === l.id;
+        return `<button class="chip" data-act="assignLabel" data-id="${c.id}" data-label="${esc(l.id)}" style="font-size:13px;min-height:36px;padding:0 12px;border-color:${on ? accent : '#E2DDD2'};background:${on ? accent : '#fff'};color:${on ? '#fff' : '#1B1F24'}">${esc(l.name)}</button>`;
+      }).join('');
+      return `<button class="row" data-act="openChat" data-id="${c.id}">
+          <div class="av" style="background:${artOf(c.id)}"><span class="pdot" style="background:${PRES_DOT[c.presence]}"></span></div>
+          <div class="grow"><span style="font-weight:700;font-size:16px">${esc(c.name)}</span><small class="ellipsis">${esc(c.status)}</small></div>
+        </button>
+        <div class="tagbox" style="margin-bottom:0">
+          <button class="pill" data-act="toggleTag" data-id="${c.id}">${esc(tagText)}</button>
+          ${S.tagFor === c.id ? `<div class="chips-row">${chips}<span class="muted">${S.labels.length ? '' : 'أنشئ تصنيفاً من قسم جهات الاتصال أولاً'}</span></div>` : ''}
+        </div>`;
+    }).join('');
+    if (chats.length === 0) html += `<div class="muted-line">لا توجد جهات اتصال بعد</div>`;
+  }
+
+  html += `<button class="sec" data-act="toggle" data-key="recentOpen"><span class="glyph">${glyph(S.recentOpen)}</span>الدردشات (${recent.length})${recentHasUnread ? '<span class="badge-red" style="margin-inline-start:auto">*</span>' : ''}</button>`;
+  if (S.recentOpen) {
+    html += recent.map((c) => {
+      const lc = chatLast(c);
+      const unread = (c.unread || 0) > 0;
+      return `<button class="row" data-act="openChat" data-id="${c.id}" style="min-height:64px">
+          <div class="av" style="background:${artOf(c.id)};width:44px;height:44px"></div>
+          <div class="grow" style="gap:3px">
+            <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:700;font-size:16px">${esc(c.name)}</span><span class="muted">${esc(c.time)}</span></div>
+            <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span style="display:flex;align-items:center;gap:6px;min-width:0">${unread ? '<span class="bluedot blink"></span>' : ''}<span class="ellipsis" style="font-size:14px;color:#4A4F57">${esc(lc.last)}</span></span><span class="mark" style="color:${lc.markColor};white-space:pre-line">${esc(lc.mark)}</span></div>
+          </div>
+        </button>`;
+    }).join('');
+    if (recent.length === 0) html += `<div class="muted-line">لا توجد دردشات بعد. راسل أحداً من جهات الاتصال.</div>`;
+  }
+
+  html += `<button class="sec" data-act="toggle" data-key="groupsOpen"><span class="glyph">${glyph(S.groupsOpen)}</span>المجموعات (${S.groups.length})</button>`;
+  if (S.groupsOpen) {
+    html += `<button class="opt" data-act="toggle" data-key="groupOpen">${svg('<circle cx="9" cy="8" r="3.5"></circle><path d="M2 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1"></path><path d="M18 8v6M21 11h-6"></path>', 24, `stroke="${accent}"`)} إنشاء مجموعة جديدة</button>`;
+    if (S.groupOpen) {
+      html += `<div class="form"><input class="input" data-field="groupName" data-enter="createGroup" value="${esc(S.groupName)}" placeholder="اسم المجموعة"><button class="btn" data-act="createGroup" style="background:${accent}">أنشئ</button></div>`;
+    }
+    html += `<button class="opt" data-act="scan">${svg('<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"></path><path d="M7 12h10"></path>', 24, `stroke="${accent}"`)} مسح رمز مجموعة</button>`;
+    if (S.groupNote) html += `<div class="note" style="background:var(--paper)">${esc(S.groupNote)}</div>`;
+    html += S.groups.map((g) => `<div class="row static" style="min-height:60px;cursor:default"><div class="gicon" style="background:${g.tint};border-radius:12px">${esc(g.name.charAt(0))}</div><div class="grow"><span style="font-weight:700;font-size:16px">${esc(g.name)}</span><small>${g.members} أعضاء</small></div></div>`).join('');
+  }
+
+  html += `<button class="sec" data-act="toggle" data-key="pendingOpen"><span class="glyph">${glyph(S.pendingOpen)}</span>بانتظار القبول (${S.pendingInvites.length})</button>`;
+  if (S.pendingOpen) {
+    html += S.pendingInvites.map((p) => `<div class="pending"><div class="sq" style="width:40px;height:40px;background:${artOf(p.id)}"></div><div class="grow"><span style="font-weight:700;font-size:15px">${esc(p.name)}</span><span class="pin">${esc(p.pin)}</span></div><span class="wait">بانتظار القبول</span><button class="btn ghost" data-act="cancelPending" data-id="${esc(p.id)}">إلغاء</button></div>`).join('');
+    if (S.pendingInvites.length === 0) html += `<div class="muted-line">لا توجد دعوات بانتظار القبول</div>`;
+  }
+  return html;
+}
+
+function feedView() {
+  const accent = ACCENT;
+  const trends = trendingOf(S.posts);
+  const posts = S.activeTag ? S.posts.filter((p) => p.text.indexOf('#' + S.activeTag) !== -1) : S.posts;
+  let html = `<div class="sticky-top">المنشورات</div>`;
+  if (S.activeTag) {
+    html += `<div class="banner"><span>نتائج #${esc(S.activeTag)}</span><button data-act="clearTag">عرض الكل</button></div>`;
+  }
+  if (trends.length) {
+    html += `<div class="trends"><h4>المتداول الآن</h4><div class="trend-row">${trends.map((t, i) => `<button class="trend" data-act="setTag" data-tag="${esc(t.tag)}"><span class="rk">${i + 1}</span><span class="lbl">#${esc(t.tag)}</span><span class="rk">${t.count} منشور</span></button>`).join('')}</div></div>`;
+  }
+  html += `<div class="composer"><div class="av" style="width:46px;height:46px;border-radius:25%;background:${accent};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex:none">ع</div>
+    <div class="cbody"><input data-field="draftPost" data-enter="publish" value="${esc(S.draftPost)}" placeholder="بماذا تفكر؟">
+    <div class="cfoot"><span class="muted">${280 - (S.draftPost || '').length} حرف متبقٍ</span><button class="pubbtn" data-act="publish" style="background:${accent}">انشر</button></div></div></div>`;
+  html += posts.map((p) => {
+    const parts = splitText(p.text).map((x) => {
+      const tag = x.charAt(0) === '#' && x.length > 1;
+      return tag ? `<button class="tagbtn" data-act="setTag" data-tag="${esc(x.slice(1))}" style="color:${accent}">${esc(x)}</button>` : esc(x);
+    }).join('');
+    const rc = (p.replies || []).length;
+    return `<article class="post" data-act="openThread" data-id="${p.id}">
+      <div class="av" style="width:44px;height:44px;background:${artOf(p.id)}"></div>
+      <div class="pbody">
+        <div class="phead"><b>${esc(p.name)}</b><span class="muted">${esc(p.handle)} · ${esc(p.time)}</span></div>
+        <div class="ptext">${parts}</div>
+        <div class="pact">
+          <button data-act="like" data-id="${p.id}" class="${p.liked ? 'on-rust' : ''}" aria-label="إعجاب">${svg(`<path d="${HEART}"></path>`, 18, `fill="${p.liked ? '#B4401A' : 'none'}"`)} ${p.likes}</button>
+          <button data-act="share" data-id="${p.id}" class="${p.shared ? 'on-green' : ''}" aria-label="إعادة نشر">${svg('<path d="M17 2l3 3-3 3"></path><path d="M4 11V9a4 4 0 0 1 4-4h12"></path><path d="M7 22l-3-3 3-3"></path><path d="M20 13v2a4 4 0 0 1-4 4H4"></path>')} ${p.shares}</button>
+          <button data-act="openThread" data-id="${p.id}" class="reply">${svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>')} ${rc ? 'الردود · ' + rc : 'الردود'}</button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+  return html;
+}
+
+function threadView() {
+  const p = S.posts.find((x) => x.id === S.threadId);
+  if (!p) return '';
+  const accent = ACCENT;
+  const replies = p.replies || [];
+  const parts = splitText(p.text).map((x) => {
+    const tag = x.charAt(0) === '#' && x.length > 1;
+    return `<span style="color:${tag ? accent : '#0F1419'};font-weight:${tag ? 700 : 400}">${esc(x)}</span>`;
+  }).join('');
+  return `<div style="display:flex;flex-direction:column;min-height:100%;background:#fff">
+    <div class="thread-top"><button class="back" data-act="closeThread" aria-label="رجوع">${svg('<path d="M9 18l6-6-6-6"></path>', 22, 'stroke-width="2.2"')}</button><b>المنشور</b></div>
+    <div style="display:flex;gap:12px;align-items:center;padding:18px 20px 6px">
+      <div class="av" style="width:50px;height:50px;background:${p.tint};font-size:20px;flex:none">${esc(p.initial)}</div>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:700;font-size:16px">${esc(p.name)}</span><span class="muted">${esc(p.handle)}</span></div>
+    </div>
+    <div class="ptext" style="padding:12px 20px 16px;line-height:1.7">${parts}</div>
+    <div class="muted" style="padding:0 20px 12px;border-bottom:1px solid var(--line2)">${esc(p.time)} · ${replies.length} رد</div>
+    <div style="display:flex;justify-content:space-around;padding:4px 0;border-bottom:1px solid var(--line2)">
+      <button data-act="like" data-id="${p.id}" style="display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;min-height:48px;padding:0 16px;color:${p.liked ? '#B4401A' : '#6A6F77'}">${svg(`<path d="${HEART}"></path>`, 18, `fill="${p.liked ? '#B4401A' : 'none'}"`)} ${p.likes} إعجاب</button>
+    </div>
+    ${replies.length === 0 ? '<div style="padding:24px 20px;font-size:14px;color:var(--muted)">لا توجد ردود بعد، كن أول من يرد</div>' : ''}
+    ${replies.map((r) => `<div class="replyrow"><span class="rw">${esc(r.name)} ${esc(r.handle)} <span>${esc(r.time)}</span></span><span class="rt">${esc(r.text)}</span></div>`).join('')}
+    <div class="thread-compose" style="margin-top:auto">
+      <input data-field="replyDraft" data-enter="reply" value="${esc(S.replyDraft)}" placeholder="اكتب رداً...">
+      <button data-act="sendReply">رد</button>
+    </div>
+  </div>`;
+}
+
+function chatListView() {
+  return `<div style="padding:14px 16px 8px;font-size:13px;color:var(--muted)">محادثات خاصة — لا يراسلك إلا من قبلت رمزه</div>` +
+    S.chats.map((c) => {
+      const lc = chatLast(c);
+      return `<button class="row" data-act="openChat" data-id="${c.id}" style="min-height:0;padding:14px 16px">
+        <div class="av" style="width:50px;height:50px;background:${artOf(c.id)};font-size:20px"><span class="pdot" style="background:${PRES_DOT[c.presence]};width:13px;height:13px"></span></div>
+        <div class="grow" style="gap:3px">
+          <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:16px">${esc(c.name)}</span><span class="muted" style="font-size:12px">${esc(c.time)}</span></div>
+          <div style="display:flex;justify-content:space-between;gap:8px"><span class="ellipsis" style="font-size:14px;color:#4A4F57">${esc(lc.last)}</span><span class="mark" style="color:${lc.markColor};white-space:pre-line">${esc(lc.mark)}</span></div>
+        </div>
+      </button>`;
+    }).join('');
+}
+
+function chatView() {
+  const accent = ACCENT;
+  const cur = S.chats.find((c) => c.id === S.chatId);
+  if (!cur) return '';
+  const shake = S.nudgeCount === 0 ? '' : (S.nudgeCount % 2 ? 'nudge-b' : 'nudge-a');
+  const msgs = cur.msgs.map((m) => {
+    const side = m.me ? 'flex-end' : 'flex-start';
+    const bg = m.me ? accent : '#fff';
+    const fg = m.me ? '#fff' : '#1B1F24';
+    const border = m.me ? accent : '#E2DDD2';
+    const mk = m.me ? MARK_TEXT[m.mark] : '';
+    const mc = m.me ? MARK_COLOR[m.mark] : '#6A6F77';
+    return `<div class="bwrap" style="align-self:${side}"><div class="bubble" style="background:${bg};color:${fg};border-color:${border}">${esc(m.text)}</div><span class="mark" style="color:${mc};align-self:${side};padding:0 6px;white-space:pre-line">${esc(mk)}</span></div>`;
+  }).join('');
+  return `<div class="chatview ${shake}">
+    <div class="chat-top">
+      <button class="back" data-act="closeChat" aria-label="رجوع">${svg('<path d="M9 6l6 6-6 6"></path>', 22, 'stroke-width="2.2"')}</button>
+      <div class="av" style="width:40px;height:40px;background:${artOf(cur.id)}"></div>
+      <div style="display:flex;flex-direction:column"><span style="font-weight:700;font-size:16px">${esc(cur.name)}</span><span style="font-size:12px;color:var(--teal)">${esc(cur.status)}</span></div>
+    </div>
+    <div class="bubbles">${msgs}${S.typing ? `<div style="align-self:flex-start;font-size:13px;color:var(--muted);padding:4px 8px">${esc(cur.name)} يكتب الآن…</div>` : ''}</div>
+    ${S.emojiOpen ? `<div class="emoji-grid">${EMOJIS.map((ch) => `<button data-act="emoji" data-ch="${ch}">${ch}</button>`).join('')}</div>` : ''}
+    <div class="chat-compose">
+      <input data-field="draftMsg" data-enter="sendMsg" value="${esc(S.draftMsg)}" placeholder="اكتب رسالة…">
+      <button data-act="toggle" data-key="emojiOpen" aria-label="سمايلات" style="flex:none;width:44px;height:44px;font-size:22px">🙂</button>
+      <button class="round nudge-btn" data-act="nudge" aria-label="إرسال تنبيه">!!!</button>
+      <button class="round send-btn" data-act="send" aria-label="إرسال">${svg('<path d="M20 12H5"></path><path d="M11 5l-7 7 7 7"></path>', 20, 'stroke-width="2.2"')}</button>
+    </div>
+  </div>`;
+}
+
+function meView() {
+  const av = AVATARS[0];
+  const list = myListOf();
+  const tabs = [['posts', 'المنشورات'], ['replies', 'الردود'], ['retweets', 'رتويت'], ['likes', 'الإعجاب']];
+  const cur = S.myTab || 'posts';
+  const empty = { posts: 'لم تنشر شيئاً بعد', replies: 'لا توجد ردود بعد', retweets: 'لم تُعد نشر أي منشور بعد', likes: 'لم تُعجب بأي منشور بعد' }[cur];
+  return `<div class="me-head">
+      <div class="me-cover"></div>
+      <div class="me-avatar">
+        <svg viewBox="0 0 96 96" aria-hidden="true">
+          <rect width="96" height="96" fill="${av.bg}"></rect>
+          <circle cx="78" cy="16" r="10" fill="${av.sun}"></circle>
+          <path d="M14 96 C14 72 28 62 48 62 C68 62 82 72 82 96 Z" fill="${av.body}"></path>
+          <path d="M40 60 L48 70 L56 60 Z" fill="#FFFFFF"></path>
+          <rect x="42" y="50" width="12" height="14" fill="#E8B98F"></rect>
+          <circle cx="48" cy="40" r="16" fill="#E8B98F"></circle>
+          <circle cx="31.5" cy="42" r="3" fill="#E8B98F"></circle>
+          <circle cx="64.5" cy="42" r="3" fill="#E8B98F"></circle>
+          <path d="M31 38 C31 20 65 20 65 38 C62 30 34 30 31 38 Z" fill="${av.hair}"></path>
+          <circle cx="42" cy="42" r="1.8" fill="#2B2118"></circle>
+          <circle cx="54" cy="42" r="1.8" fill="#2B2118"></circle>
+          <path d="M42 50 Q48 55 54 50" stroke="#2B2118" stroke-width="2" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div style="font-size:20px;font-weight:700">[اسمك]</div>
+      <div class="muted" style="font-size:14px">@[معرّفك]</div>
+      <div style="font-size:15px;line-height:1.6;text-align:center;max-width:320px">مطوّر يحب القهوة والكتابة، وأشارك هنا أفكاري اليومية.</div>
+      <div class="me-stats">
+        <div><span class="n">214</span><span class="l">المتابعين</span></div>
+        <div><span class="n">38</span><span class="l">المتابَعون</span></div>
+      </div>
+    </div>
+    <div class="me-body">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="mytabs">${tabs.map(([k, label]) => `<button data-act="setMyTab" data-k="${k}" class="${cur === k ? 'on' : ''}">${label}</button>`).join('')}</div>
+        ${list.length === 0 ? `<div class="muted" style="font-size:14px">${empty}</div>` : ''}
+        ${list.map((p) => `<div class="mylist"><div class="meta">${esc(p.name)} ${esc(p.handle)} · ${esc(p.time)} · ${p.likes} إعجاب</div><div class="txt">${esc(p.text)}</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function nav() {
+  const defs = [
+    { key: 'home', label: 'الرئيسية', icon: ICON.home, badge: S.requests.length ? String(S.requests.length) : '' },
+    { key: 'feed', label: 'المنشورات', icon: ICON.feed, badge: '' },
+    { key: 'chats', label: 'الخاص', icon: ICON.chats, badge: S.chats.some((c) => (c.unread || 0) > 0) ? '*' : '' },
+    { key: 'me', label: 'حسابي', icon: ICON.me, badge: '' }
+  ];
+  return `<nav class="tabs">${defs.map((t) => `<button data-act="go" data-tab="${t.key}" class="${S.tab === t.key ? 'on' : ''}">${svg(`<path d="${t.icon}"></path>`, 22, 'stroke-width="2"')}${t.label}${t.badge ? `<span class="b">${esc(t.badge)}</span>` : ''}</button>`).join('')}</nav>`;
+}
+
+function body() {
+  if (S.threadId) return threadView();
+  if (S.tab === 'home') return homeView();
+  if (S.tab === 'feed') return feedView();
+  if (S.tab === 'chats') return S.chatId ? chatView() : chatListView();
+  if (S.tab === 'me') return meView();
+  return '';
+}
+
+function render() {
+  const app = document.getElementById('app');
+  const main = document.getElementById('main');
+  const scroll = main ? main.scrollTop : 0;
+  const active = document.activeElement;
+  const focusId = active && active.dataset ? active.dataset.field : null;
+  const caret = active && active.selectionStart != null ? active.selectionStart : null;
+
+  const showHeader = S.tab !== 'feed' && S.tab !== 'me' && !(S.tab === 'chats' && !!S.chatId);
+  app.innerHTML = (showHeader ? header() : '') +
+    `<main id="main">${body()}</main>` +
+    (S.threadId ? '' : nav());
+
+  const nm = document.getElementById('main');
+  if (nm) nm.scrollTop = scroll;
+  if (focusId) {
+    const el = document.querySelector(`[data-field="${focusId}"]`);
+    if (el) {
+      el.focus();
+      if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret);
+    }
+  }
+}
+
+render();
+</script>
+</body>
+</html>
