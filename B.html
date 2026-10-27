@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>حراج الأبل</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: header with logo, category tiles, one filter bar, and a classifieds list (image left, details right).
+   Palette: sand paper, ink brown, camel-brown accent. */
+:root{
+  --bg:#F6F2EA; --surface:#FFFFFF; --sunken:#EFE9DD; --fg:#241B12; --muted:#6B5E50; --faint:#9A8C7C;
+  --line:#E5DDCD; --accent:#8C5A2B; --accent-hover:#72461F; --accent-ink:#FFFFFF; --accent-soft:#F3E6D6;
+  --shadow:0 1px 2px rgba(36,27,18,.06), 0 10px 26px -16px rgba(36,27,18,.28);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15110D; --surface:#1F1913; --sunken:#2A221A; --fg:#F1E9DC; --muted:#B2A391; --faint:#7F7262;
+    --line:#352B21; --accent:#D39A60; --accent-hover:#E2AD78; --accent-ink:#1A130C; --accent-soft:#332719;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 28px -14px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15110D; --surface:#1F1913; --sunken:#2A221A; --fg:#F1E9DC; --muted:#B2A391; --faint:#7F7262;
+  --line:#352B21; --accent:#D39A60; --accent-hover:#E2AD78; --accent-ink:#1A130C; --accent-soft:#332719;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 28px -14px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 15px/1.7 "IBM Plex Sans Arabic",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.01em}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Header */
+/* Header: white band with a large, faint camel silhouette on the right (head to the right). */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);color:var(--fg);overflow:hidden;border-bottom:1px solid var(--line);box-shadow:0 6px 20px -14px rgba(36,27,18,.35)}
+header.top::before{content:"";position:absolute;top:0;bottom:0;inset-inline-end:0;width:min(62%,680px);background:var(--accent);opacity:.13;-webkit-mask:url(camel-mask-flip.png) right center/auto 130% no-repeat;mask:url(camel-mask-flip.png) right center/auto 130% no-repeat;pointer-events:none;z-index:0}
+header.top .wrap{position:relative;z-index:1;display:flex;align-items:center;gap:18px;padding-block:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px;margin-inline-end:auto;color:var(--fg);text-decoration:none}
+/* Silhouette logo: a transparent PNG used as a mask, so it takes the page accent in both themes. */
+.logo{flex:none;width:76px;height:57px;background:var(--accent);-webkit-mask:url(camel-mask.png) center/contain no-repeat;mask:url(camel-mask.png) center/contain no-repeat}
+.brand-name{display:block;font-weight:700;font-size:28px;line-height:1.1;letter-spacing:-.01em;color:var(--accent)}
+.brand-sub{display:block;font-size:14px;color:var(--muted);margin-top:4px}
+.search{flex:1 1 280px;min-width:0;max-width:460px;position:relative}
+.search svg{position:absolute;top:50%;inset-inline-start:12px;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+.search input{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 14px;padding-inline-start:38px;background:var(--bg);color:var(--fg);transition:border-color .15s,background .15s}
+.search input::placeholder{color:var(--faint)}
+.search input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:12px;padding:9px 16px;font-weight:600;font-size:14px;white-space:nowrap;transition:background .15s}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn:disabled{opacity:.6;cursor:default}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft)}
+.btn.wa{background:#1E9E55;border-color:#1E9E55;color:#fff;justify-content:center}
+.btn.wa:hover{background:#17844A;border-color:#17844A}
+
+/* Intro */
+.intro{padding-block:58px 6px;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
+.intro h1{font-size:26px;font-weight:700}
+.intro p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.stats{display:flex;gap:24px;flex-wrap:wrap}
+.stat b{display:block;font-size:20px;font-weight:700;line-height:1.2}
+.stat span{font-size:12px;color:var(--muted)}
+
+/* Category tiles */
+.cats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:18px}
+.cat{display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-align:right;transition:border-color .15s,box-shadow .15s}
+.cat:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.cat[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.cat .name{font-weight:600;font-size:15px}
+.cat .n{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Filter bar */
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.bar select{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);min-width:0;flex:1 1 160px}
+.bar select:focus{outline:none;border-color:var(--accent)}
+.bar .reset{border:none;background:transparent;color:var(--muted);font-size:14px;padding:8px 10px;border-radius:10px}
+.bar .reset:hover{color:var(--fg);background:var(--sunken)}
+
+/* Results */
+.results-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:18px 10px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+.results-head strong{color:var(--fg);font-weight:600}
+.tag-note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:999px;padding:2px 10px}
+.list{display:flex;flex-direction:column;gap:10px;padding-bottom:44px}
+.ad{display:flex;gap:16px;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:right;width:100%;min-width:0;transition:border-color .15s,box-shadow .15s}
+.ad:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.ad-img{position:relative;flex:none;width:156px;aspect-ratio:4/3;border-radius:10px;overflow:hidden}
+.ad-img::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 14px)}
+.ad-img .init{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:rgba(255,255,255,.3)}
+.ad-img .feat{position:absolute;top:8px;inset-inline-start:8px;z-index:1;background:#fff;color:var(--accent);font-size:11px;font-weight:700;border-radius:999px;padding:1px 9px}
+.ad-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;padding-block:2px}
+.ad-title{font-weight:600;font-size:16px;line-height:1.4}
+.ad-desc{margin:0;color:var(--muted);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ad-meta{margin-top:auto;display:flex;gap:6px 14px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.ad-side{flex:none;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:6px;min-width:110px}
+.price{font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.price small{font-weight:400;font-size:12px;color:var(--muted);margin-inline-start:3px}
+.ad-go{font-size:13px;color:var(--accent);font-weight:600}
+.empty{text-align:center;padding:52px 16px;color:var(--muted);border:1px dashed var(--line);border-radius:14px;background:var(--surface)}
+.empty b{display:block;color:var(--fg);font-size:16px;margin-bottom:4px}
+.ad-img img,.detail-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* Dialogs */
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--surface);color:var(--fg);padding:0;width:min(560px,calc(100vw - 32px));max-height:88vh;box-shadow:0 30px 60px -20px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(24,16,8,.5)}
+.dlg{padding:22px;display:flex;flex-direction:column;gap:16px}
+.dlg-head{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.dlg-head h2{font-size:18px;font-weight:700}
+.x{flex:none;width:34px;height:34px;border:1px solid var(--line);background:transparent;border-radius:10px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.x:hover{color:var(--fg)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+.form-grid label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+.form-grid input,.form-grid select,.form-grid textarea{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--bg);color:var(--fg);min-width:0;font-weight:400;font-size:14px}
+.form-grid input[type="file"]{padding:7px 10px;font-size:13px}
+.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.form-grid textarea{resize:vertical;min-height:84px}
+.note{font-size:13px;color:var(--muted);margin:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.detail-img{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden}
+.detail-img::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 14px)}
+.detail-img .init{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:700;color:rgba(255,255,255,.3)}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.kv div{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.kv div:nth-child(odd){border-inline-end:1px solid var(--line)}
+.kv div:nth-last-child(-n+2){border-bottom:0}
+.kv dt{font-size:12px;color:var(--muted)}
+.kv dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.desc{margin:0;line-height:1.8}
+.contact{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.contact h3{font-size:15px;font-weight:700}
+.contact-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}
+.contact-row span{color:var(--muted)}
+.ltr{direction:ltr;unicode-bidi:isolate}
+
+/* Footer */
+footer{border-top:1px solid var(--line);background:var(--surface);padding-block:26px 30px;color:var(--muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer b{color:var(--fg);font-weight:600;display:block;margin-bottom:4px}
+
+@media (max-width:860px){
+  .cats{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .cats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ad{gap:12px}
+  .ad-img{width:110px}
+  .ad-side{min-width:0}
+  .ad-desc{display:none}
+  .form-grid{grid-template-columns:1fr}
+  .kv{grid-template-columns:1fr}
+  .kv div:nth-child(odd){border-inline-end:0}
+  .kv div:nth-last-child(-n+2){border-bottom:1px solid var(--line)}
+  .kv div:last-child{border-bottom:0}
+  .intro h1{font-size:22px}
+  .stats{gap:18px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="حراج الأبل">
+      <span class="logo" aria-hidden="true"></span>
+      <span>
+        <span class="brand-name">حراج الأبل</span>
+        <span class="brand-sub">سوق المواشي: أغنام وماعز وإبل وأبقار</span>
+      </span>
+    </a>
+    <form class="search" id="searchForm" role="search">
+      <label class="sr" for="q">ابحث عن مواشي</label>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+      <input id="q" type="search" placeholder="ابحث: ناقة مجاهيم، خروف نعيمي…" autocomplete="off">
+    </form>
+    <button class="btn" id="openPost" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      أضف إعلاناً
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro" aria-label="ملخص السوق">
+    <div>
+      <h1>بيع وشراء المواشي بوضوح</h1>
+      <p>إعلانات منظمة حسب الفئة والمدينة، مع تفاصيل واضحة لكل حيوان.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b class="num" id="statAll">0</b><span>إعلان نشط</span></div>
+      <div class="stat"><b class="num" id="statCities">0</b><span>مدينة</span></div>
+      <div class="stat"><b class="num" id="statFeatured">0</b><span>إعلان مميز</span></div>
+    </div>
+  </section>
+
+  <nav class="cats" id="cats" aria-label="الفئات"></nav>
+
+  <section class="bar" aria-label="تصفية النتائج">
+    <select id="city" aria-label="المدينة"></select>
+    <select id="maxPrice" aria-label="أعلى سعر">
+      <option value="0">أي سعر</option>
+      <option value="1000">حتى 1,000 ريال</option>
+      <option value="3000">حتى 3,000 ريال</option>
+      <option value="6000">حتى 6,000 ريال</option>
+      <option value="10000">حتى 10,000 ريال</option>
+    </select>
+    <select id="sort" aria-label="ترتيب حسب">
+      <option value="new">الأحدث</option>
+      <option value="low">الأقل سعراً</option>
+      <option value="high">الأعلى سعراً</option>
+    </select>
+    <button class="reset" type="button" id="reset">مسح الفلاتر</button>
+  </section>
+
+  <div class="results-head">
+    <span id="count"></span>
+    <span class="tag-note">إعلانات توضيحية لعرض التصميم</span>
+  </div>
+
+  <section class="list" id="list" aria-live="polite"></section>
+</main>
+
+<dialog id="detail" aria-labelledby="dTitle">
+  <div class="dlg" id="detailBody"></div>
+</dialog>
+
+<dialog id="post" aria-labelledby="pTitle">
+  <form class="dlg" id="postForm">
+    <div class="dlg-head">
+      <h2 id="pTitle">إضافة إعلان</h2>
+      <button class="x" type="button" data-close="post" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="form-grid">
+      <label>الفئة
+        <select name="cat" required>
+          <option value="sheep">أغنام</option>
+          <option value="goat">ماعز</option>
+          <option value="camel">إبل</option>
+          <option value="cow">أبقار</option>
+        </select>
+      </label>
+      <label>المدينة
+        <select name="city" required id="postCity"></select>
+      </label>
+      <label>العمر (بالأشهر)
+        <input name="age" type="number" min="1" max="240" required>
+      </label>
+      <label>الوزن التقريبي (كغ)
+        <input name="weight" type="number" min="1" max="2000">
+      </label>
+      <label class="full">السعر (ريال)
+        <input name="price" type="number" min="1" required>
+      </label>
+      <label>اسم البائع
+        <input name="seller" required maxlength="40">
+      </label>
+      <label>رقم واتساب
+        <input name="wa" type="tel" dir="ltr" placeholder="9665XXXXXXXX" required pattern="9665[0-9]{8}">
+      </label>
+      <label class="full">صورة الحيوان (اختياري)
+        <input name="img" id="postImg" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+      </label>
+      <label class="full">وصف الحيوان
+        <textarea name="desc" maxlength="400" placeholder="السلالة، الحالة الصحية، طريقة التسليم…"></textarea>
+      </label>
+    </div>
+    <p class="note" id="postNote">يُراجع الإعلان قبل نشره، ثم يظهر رقم الواتساب في صفحة الإعلان.</p>
+    <p class="note" id="postMsg" role="status"></p>
+    <div class="actions">
+      <button class="btn" id="postSubmit" type="submit">إرسال للمراجعة</button>
+      <button class="btn ghost" type="button" data-close="post">إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
+<footer>
+  <div class="wrap">
+    <div><b>حراج الأبل</b>منصة إعلانية تربط البائع بالمشتري داخل المملكة.</div>
+    <div>المنصة لا تضمن صحة الإعلانات، فتحقق من الحيوان وحالته قبل الشراء أو الدفع.</div>
+  </div>
+</footer>
+
+<script>
+const CATS = [
+  { id: 'all', label: 'الكل' },
+  { id: 'camel', label: 'إبل' },
+  { id: 'sheep', label: 'أغنام' },
+  { id: 'goat', label: 'ماعز' },
+  { id: 'cow', label: 'أبقار' }
+];
+const CITIES = ['الرياض', 'جدة', 'الطائف', 'القصيم', 'حائل', 'عسير', 'الدمام'];
+const CAT_LABEL = { sheep: 'أغنام', goat: 'ماعز', camel: 'إبل', cow: 'أبقار' };
+const BREED = { sheep: 'نعيمي', goat: 'شامي', camel: 'مجاهيم', cow: 'هولشتاين' };
+const HUES = { sheep: ['#5E6B2F', '#8C9A55'], goat: ['#6B4A2E', '#A57B4F'], camel: ['#8C5A2B', '#C69A62'], cow: ['#4E4636', '#8A7F68'] };
+
+// Listings live in the artifact's database (db capability). Rows are read live with onSnapshot.
+const SAMPLE = [{"key": "l1", "cat": "sheep", "city": "القصيم", "age": 14, "weight": 52, "price": 1800, "featured": true, "ts": 9, "views": 124, "desc": "خروف نعيمي سليم، معلَف جيداً، جاهز للتسليم.", "seller": "مربي توضيحي 1", "wa": "966500000001"}, {"key": "l2", "cat": "goat", "city": "الطائف", "age": 10, "weight": 38, "price": 1100, "featured": false, "ts": 8, "views": 87, "desc": "ماعز شامي أنثى، لم تلد بعد، حالة ممتازة.", "seller": "مربي توضيحي 2", "wa": "966500000002"}, {"key": "l3", "cat": "camel", "city": "حائل", "age": 60, "weight": 480, "price": 14500, "featured": true, "ts": 7, "views": 342, "desc": "ناقة مجاهيم عمر 5 سنوات، مدربة على الحمل الخفيف.", "seller": "مربي توضيحي 3", "wa": "966500000003"}, {"key": "l4", "cat": "cow", "city": "الرياض", "age": 24, "weight": 380, "price": 6200, "featured": false, "ts": 6, "views": 56, "desc": "عجلة هولشتاين، تم تطعيمها، مناسبة للتربية.", "seller": "مربي توضيحي 4", "wa": "966500000004"}, {"key": "l5", "cat": "sheep", "city": "جدة", "age": 8, "weight": 34, "price": 950, "featured": false, "ts": 5, "views": 210, "desc": "حملان للتسمين، وزن متقارب، سعر للجملة يُتفاهم عليه.", "seller": "مربي توضيحي 5", "wa": "966500000005"}, {"key": "l6", "cat": "goat", "city": "عسير", "age": 18, "weight": 45, "price": 1450, "featured": false, "ts": 4, "views": 33, "desc": "تيس شامي للتربية، نسب واضح.", "seller": "مربي توضيحي 6", "wa": "966500000006"}, {"key": "l7", "cat": "sheep", "city": "الدمام", "age": 30, "weight": 70, "price": 2600, "featured": false, "ts": 3, "views": 97, "desc": "نعجة نعيمية مع حملها، مناسبة للتكاثر.", "seller": "مربي توضيحي 7", "wa": "966500000007"}, {"key": "l8", "cat": "camel", "city": "القصيم", "age": 96, "weight": 520, "price": 22000, "featured": false, "ts": 2, "views": 415, "desc": "جمل مجاهيم عمر 8 سنوات، هادئ، مناسب للعرض.", "seller": "مربي توضيحي 8", "wa": "966500000008"}, {"key": "l9", "cat": "cow", "city": "الطائف", "age": 36, "weight": 430, "price": 8400, "featured": true, "ts": 1, "views": 188, "desc": "بقرة حلوب، تعطي حليباً يومياً مستقراً.", "seller": "مربي توضيحي 9", "wa": "966500000009"}];
+let items = [];
+let loaded = false;
+let db = null;      // null for a view without the db capability
+let assets = null;  // writers only; null for read-only viewers
+let state = { cat: 'all', q: '' };
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => Number(n || 0).toLocaleString('ar-SA');
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const bg = (cat) => { const [a, b] = HUES[cat] || HUES.sheep; return `background:linear-gradient(135deg, ${a} 0%, ${b} 100%)`; };
+const imgSrc = (x) => (x.img ? '/_blob/' + x.img : '');
+
+function visible() {
+  const city = $('city').value;
+  const maxP = Number($('maxPrice').value);
+  const q = state.q.trim();
+  let list = items.filter((x) =>
+    (state.cat === 'all' || x.cat === state.cat) &&
+    (!city || x.city === city) &&
+    (!maxP || x.price <= maxP) &&
+    (!q || (CAT_LABEL[x.cat] + ' ' + BREED[x.cat] + ' ' + x.city + ' ' + x.desc).includes(q))
+  );
+  const sort = $('sort').value;
+  if (sort === 'low') list = list.slice().sort((a, b) => a.price - b.price);
+  else if (sort === 'high') list = list.slice().sort((a, b) => b.price - a.price);
+  else list = list.slice().sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  return list;
+}
+
+function renderStats() {
+  $('statAll').textContent = fmt(items.length);
+  $('statCities').textContent = fmt(new Set(items.map((x) => x.city)).size);
+  $('statFeatured').textContent = fmt(items.filter((x) => x.featured).length);
+}
+
+function render() {
+  if (!loaded) {
+    $('count').textContent = '';
+    $('list').innerHTML = '<div class="empty"><b>جارٍ تحميل الإعلانات…</b></div>';
+    return;
+  }
+  const list = visible();
+  $('count').innerHTML = `عرض <strong class="num">${fmt(list.length)}</strong> إعلان`;
+  $('list').innerHTML = list.length ? list.map((x) => `
+    <article class="ad" role="button" tabindex="0" data-open="${esc(x.key)}" aria-label="${esc(CAT_LABEL[x.cat])} ${esc(BREED[x.cat])} في ${esc(x.city)}">
+      <div class="ad-img" style="${bg(x.cat)}">
+        ${x.img ? `<img src="${esc(imgSrc(x))}" alt="">` : `<span class="init" aria-hidden="true">${esc(CAT_LABEL[x.cat].charAt(0))}</span>`}
+        ${x.featured ? '<span class="feat">مميز</span>' : ''}
+      </div>
+      <div class="ad-body">
+        <h3 class="ad-title">${esc(CAT_LABEL[x.cat])} ${esc(BREED[x.cat])}</h3>
+        <p class="ad-desc">${esc(x.desc)}</p>
+        <div class="ad-meta">
+          <span>${esc(x.city)}</span>
+          <span class="num">${fmt(x.age)} شهراً</span>
+          ${x.weight ? `<span class="num">${fmt(x.weight)} كغ</span>` : ''}
+          <span>${esc(x.seller)}</span>
+          <span class="num">${fmt(x.views)} مشاهدة</span>
+        </div>
+      </div>
+      <div class="ad-side">
+        <span class="price num">${fmt(x.price)}<small>ريال</small></span>
+        <span class="ad-go">عرض التفاصيل</span>
+      </div>
+    </article>`).join('') : '<div class="empty"><b>لا توجد إعلانات مطابقة</b>جرّب تغيير المدينة أو السعر، أو امسح الفلاتر.</div>';
+}
+
+function buildFilters() {
+  $('cats').innerHTML = CATS.map((c) => {
+    const n = c.id === 'all' ? items.length : items.filter((x) => x.cat === c.id).length;
+    const name = c.id === 'all' ? 'كل المواشي' : c.label;
+    return `<button class="cat" type="button" data-cat="${c.id}" aria-pressed="${c.id === state.cat}"><span class="name">${name}</span><span class="n num">${fmt(n)} إعلان</span></button>`;
+  }).join('');
+  if (!$('city').options.length) {
+    $('city').innerHTML = '<option value="">كل المدن</option>' + CITIES.map((c) => `<option>${c}</option>`).join('');
+  }
+  $('postCity').innerHTML = CITIES.map((c) => `<option>${c}</option>`).join('');
+}
+
+function openDetail(key) {
+  const x = items.find((i) => i.key === key);
+  if (!x) return;
+  // Count the view (last-writer-wins; two visits at the same instant can count once).
+  if (db) db.doc('listings/' + key).update({ views: (x.views || 0) + 1 }).catch(() => {});
+  $('detailBody').innerHTML = `
+    <div class="dlg-head">
+      <div>
+        <h2 id="dTitle">${esc(CAT_LABEL[x.cat])} ${esc(BREED[x.cat])}</h2>
+        <p class="note" style="margin-top:4px">${esc(x.city)}${x.featured ? ' · إعلان مميز' : ''}</p>
+      </div>
+      <button class="x" type="button" data-close="detail" aria-label="إغلاق">✕</button>
+    </div>
+    <div class="detail-img" style="${bg(x.cat)}">
+      ${x.img ? `<img src="${esc(imgSrc(x))}" alt="">` : `<span class="init" aria-hidden="true">${esc(CAT_LABEL[x.cat].charAt(0))}</span>`}
+    </div>
+    <dl class="kv">
+      <div><dt>السعر</dt><dd>${fmt(x.price)} ريال</dd></div>
+      <div><dt>العمر</dt><dd>${fmt(x.age)} شهراً</dd></div>
+      <div><dt>الوزن التقريبي</dt><dd>${x.weight ? fmt(x.weight) + ' كغ' : 'غير محدد'}</dd></div>
+      <div><dt>المشاهدات</dt><dd class="num">${fmt(x.views)}</dd></div>
+    </dl>
+    <p class="desc">${esc(x.desc)}</p>
+    <section class="contact" aria-label="قائمة التواصل">
+      <h3>قائمة التواصل</h3>
+      <div class="contact-row"><span>البائع</span><b>${esc(x.seller)}</b></div>
+      <div class="contact-row"><span>واتساب</span><b class="num ltr">+${esc(x.wa)}</b></div>
+      <a class="btn wa" href="https://wa.me/${esc(x.wa)}" target="_blank" rel="noopener">تواصل عبر واتساب</a>
+    </section>
+    <p class="note">تحقق من الحيوان وحالته قبل الدفع.</p>`;
+  $('detail').showModal();
+}
+
+document.addEventListener('click', (e) => {
+  const cat = e.target.closest('[data-cat]');
+  if (cat) { state.cat = cat.dataset.cat; buildFilters(); render(); return; }
+  const open = e.target.closest('[data-open]');
+  if (open) { openDetail(open.dataset.open); return; }
+  const close = e.target.closest('[data-close]');
+  if (close) { $(close.dataset.close).close(); }
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-open]')) {
+    e.preventDefault();
+    openDetail(e.target.dataset.open);
+  }
+});
+['city', 'maxPrice', 'sort'].forEach((id) => $(id).addEventListener('change', render));
+$('reset').addEventListener('click', () => {
+  state = { cat: 'all', q: '' };
+  $('q').value = '';
+  $('city').value = '';
+  $('maxPrice').value = '0';
+  $('sort').value = 'new';
+  buildFilters();
+  render();
+});
+$('searchForm').addEventListener('submit', (e) => { e.preventDefault(); state.q = $('q').value; render(); });
+$('q').addEventListener('input', () => { state.q = $('q').value; render(); });
+$('openPost').addEventListener('click', () => {
+  $('postMsg').textContent = db ? '' : 'هذه النسخة من الصفحة للعرض فقط، ولا تستطيع حفظ الإعلانات.';
+  $('postSubmit').disabled = !db;
+  $('postImg').disabled = !assets;
+  $('postNote').textContent = assets
+    ? 'يُراجع الإعلان قبل نشره، ثم يظهر رقم الواتساب في صفحة الإعلان.'
+    : 'رفع الصور متاح لمحرري الصفحة فقط؛ يمكنك نشر الإعلان بدون صورة.';
+  $('post').showModal();
+});
+$('postForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!db) return;
+  const f = new FormData(e.target);
+  const btn = $('postSubmit');
+  btn.disabled = true;
+  $('postMsg').textContent = 'جارٍ الحفظ…';
+  try {
+    const data = {
+      cat: String(f.get('cat')),
+      city: String(f.get('city')),
+      age: Number(f.get('age')),
+      weight: Number(f.get('weight')) || 0,
+      price: Number(f.get('price')),
+      featured: false,
+      ts: Date.now(),
+      views: 0,
+      desc: String(f.get('desc') || 'بدون وصف'),
+      seller: String(f.get('seller') || 'بائع').slice(0, 40),
+      wa: String(f.get('wa') || '').replace(/\D/g, '')
+    };
+    const file = f.get('img');
+    if (assets && file && file.size) {
+      const up = await assets.upload(file);
+      data.img = up.id;
+    }
+    await db.collection('listings').add(data);
+    e.target.reset();
+    $('post').close();
+    state.cat = 'all';
+    buildFilters();
+  } catch (err) {
+    $('postMsg').textContent = 'تعذّر الحفظ: ' + ((err && err.message) || 'حاول مرة أخرى');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+async function init() {
+  try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
+  try { assets = window.claude && window.claude.use ? await window.claude.use('assets') : null; } catch (e) { assets = null; }
+  buildFilters();
+  if (!db) { items = SAMPLE.slice(); loaded = true; renderStats(); buildFilters(); render(); return; }
+  db.collection('listings').onSnapshot((snap) => {
+    items = snap.docs.filter((d) => d.exists).map((d) => ({ ...d.data(), key: d.id }));
+    loaded = true;
+    renderStats();
+    buildFilters();
+    render();
+  }, () => { loaded = true; render(); });
+}
+
+buildFilters();
+renderStats();
+render();
+init();
+</script>
+</body>
+</html>
