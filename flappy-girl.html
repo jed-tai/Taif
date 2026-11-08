@@ -1,5 +1,22 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<script>
+window.FB_CONFIG = {
+  apiKey:            "AIzaSyDnfb_JSEl8ryCy7fbCbi6b8RQP7plVl8M",
+  authDomain:        "brick-breaker-b633f.firebaseapp.com",
+  projectId:         "brick-breaker-b633f",
+  storageBucket:     "brick-breaker-b633f.firebasestorage.app",
+  messagingSenderId: "740721077248",
+  appId:             "1:740721077248:web:604207ea66facb45177ce5"
+};
+</script>
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#f3f5f4">
 <title>طيّارة صغيرة</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@700&family=IBM+Plex+Sans+Arabic:wght@500;700&display=swap">
 <style>
@@ -40,7 +57,8 @@ body{background:#f3f5f4;color:var(--ink);font-family:var(--body);overflow:hidden
 .empty{color:var(--dim);font-size:14px;padding:12px 0}
 #medal{font-size:34px;line-height:1;min-height:0}
 </style>
-
+</head>
+<body>
 <canvas id="cv"></canvas>
 <div id="score" hidden>0</div>
 <div id="best" hidden></div>
@@ -384,7 +402,9 @@ const LB=(()=>{let db=null,uid=null,rows=[],mine=null,canWrite=true,lbState='wai
   function render(){const ol=$('board');ol.textContent='';
     if(!rows.length){const li=document.createElement('div');li.className='empty';
       li.textContent=lbState==='on'?'لا أحد في الترتيب بعد… كن الأول!'
-        :(lbState==='wait'?'جارٍ الاتصال بلوحة الترتيب…':'لوحة الترتيب تعمل داخل تطبيق Claude فقط');
+        :(lbState==='wait'?'جارٍ الاتصال بلوحة الترتيب…'
+          :window.__lbReason==='noconfig'?'لوحة الترتيب غير مفعّلة — أضف إعدادات Firebase في أعلى الملف'
+          :'تعذّر الاتصال بلوحة الترتيب — تحقّق من الإنترنت');
       ol.appendChild(li);return}
     rows.slice(0,20).forEach((r,i)=>{const li=document.createElement('li');if(r.id===uid)li.className='me';
       const n=document.createElement('span');n.className='n';n.textContent=i+1;
@@ -403,13 +423,12 @@ const LB=(()=>{let db=null,uid=null,rows=[],mine=null,canWrite=true,lbState='wai
     catch(e){if(e&&e.code==='invalid_argument'){canWrite=false;$('oRank').textContent='لوحة الترتيب للعرض فقط في هذا الرابط'}else $('oRank').textContent=''}}
   const off=()=>{lbState='off';render()};
   (async()=>{try{
-    const C=await new Promise(res=>{                      // window.claude may arrive after this script
-      if(window.claude&&window.claude.use)return res(window.claude);
-      let n=0;const iv=setInterval(()=>{
-        if(window.claude&&window.claude.use){clearInterval(iv);res(window.claude)}
-        else if(++n>120){clearInterval(iv);res(null)}},100)});
-    if(!C)return off();
-    const [d,u]=await Promise.all([C.use('db'),C.use('user')]);if(!d||!u)return off();
+    const be=await new Promise(res=>{                     // Firebase backend, started at the end of this file
+      if(window.__lbBackend!==undefined)return res(window.__lbBackend);
+      addEventListener('lb-backend',e=>res(e.detail),{once:true});
+      setTimeout(()=>res(null),20000)});
+    if(!be)return off();
+    const d=be.db,u=be.user;
     uid=await u.id();if(!uid)return off();db=d;lbState='on';
     try{const c=await u.can('data.write');if(c===false)canWrite=false}catch(e){}
     document.querySelectorAll('.lbB').forEach(b=>b.hidden=false);
@@ -425,3 +444,28 @@ const LB=(()=>{let db=null,uid=null,rows=[],mine=null,canWrite=true,lbState='wai
 reset();state='menu';$('score').hidden=true;$('best').hidden=true;drawAvatar();
 })();
 </script>
+
+<script type="module">
+/* إعدادات Firebase موضوعة في أعلى هذا الملف (window.FB_CONFIG) */
+const FIREBASE_CONFIG = window.FB_CONFIG || {};
+const COLLECTION = "flappy_scores";
+const V = "10.12.2";
+function done(b){window.__lbBackend=b;dispatchEvent(new CustomEvent('lb-backend',{detail:b}))}
+if(!FIREBASE_CONFIG.apiKey||!FIREBASE_CONFIG.projectId){window.__lbReason="noconfig";done(null)}
+else{
+  try{
+    const {initializeApp}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+    const F=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+    const {getAuth,signInAnonymously}=await import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`);
+    const app=initializeApp(FIREBASE_CONFIG);const fs=F.getFirestore(app);
+    const cred=await signInAnonymously(getAuth(app));const uid=cred.user.uid;
+    const wrap=p=>p.catch(e=>{throw{code:e&&e.code==='permission-denied'?'invalid_argument':(e&&e.code)||'unknown',message:String(e&&e.message||e)}});
+    const db={collection:()=>({
+      orderBy:(f,dir)=>({limit:n=>({onSnapshot:(next,err)=>F.onSnapshot(F.query(F.collection(fs,COLLECTION),F.orderBy(f,dir),F.limit(n)),s=>next({docs:s.docs.map(x=>({id:x.id,exists:true,data:()=>x.data()}))}),err)})}),
+      doc:id=>({get:async()=>{const s=await F.getDoc(F.doc(fs,COLLECTION,id));return{exists:s.exists(),data:()=>s.data()}},set:data=>wrap(F.setDoc(F.doc(fs,COLLECTION,id),data))})})};
+    done({db,user:{id:async()=>uid,can:async()=>true}});
+  }catch(e){console.warn('Leaderboard disabled:',e);window.__lbReason='failed';done(null)}
+}
+</script>
+</body>
+</html>
